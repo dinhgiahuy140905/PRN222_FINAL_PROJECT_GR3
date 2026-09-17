@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SalesHub</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /><link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="app-shell"><aside class="sidebar"><a class="brand" asp-controller="Home" asp-action="Index"><span class="brand-mark">S</span><span>SalesHub</span></a><div class="sidebar-label">Tổng quan</div><nav><a class="nav-link active" asp-controller="Home" asp-action="Index"><span class="nav-icon">⌂</span><span>Dashboard</span></a><a class="nav-link" href="#"><span class="nav-icon">▣</span><span>Đơn hàng</span></a><a class="nav-link" href="#"><span class="nav-icon">▤</span><span>Sản phẩm</span></a><a class="nav-link" href="#"><span class="nav-icon">◈</span><span>Khách hàng</span></a></nav><div class="sidebar-label mt-4">Quản lý</div><nav><a class="nav-link" href="#"><span class="nav-icon">▦</span><span>Cửa hàng</span></a><a class="nav-link" href="#"><span class="nav-icon">⚙</span><span>Cài đặt</span></a></nav></aside><div class="main-content"><header class="topbar"><span class="text-muted small">Thứ tư, ngày 17 tháng 9, 2026</span><div class="d-flex align-items-center gap-3"><span class="text-muted">🔔</span>@if (User.Identity?.IsAuthenticated == true) { <span class="avatar">@User.Identity.Name?.Substring(0, 1).ToUpper()</span><span class="small fw-semibold">@User.Identity.Name</span> } else { <a class="btn btn-sm btn-light-primary" asp-controller="Account" asp-action="Login">Đăng nhập</a> }</div></header><main class="page-content">@RenderBody()</main><footer class="footer text-muted small">© 2026 SalesHub · Nền tảng quản lý bán hàng đa cửa hàng</footer></div></div>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>@await RenderSectionAsync("Scripts", required: false)
+</body></html>
