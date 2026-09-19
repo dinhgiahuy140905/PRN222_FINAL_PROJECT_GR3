@@ -1,0 +1,47 @@
+@model StoreSelectionViewModel
+@{
+    ViewData["Title"] = "Chọn cửa hàng";
+}
+
+<section class="store-page">
+    <div class="store-page-heading">
+        <div><span class="eyebrow">Không gian làm việc</span><h1>Cửa hàng của bạn</h1><p>Chọn cửa hàng để xem và quản lý dữ liệu tương ứng.</p></div>
+        <a class="btn btn-primary action-button" asp-action="Create"><span aria-hidden="true">＋</span> Tạo cửa hàng</a>
+    </div>
+
+    @if (Model.Stores.Count == 0)
+    {
+        <div class="content-card store-empty">
+            <div class="store-empty-icon">▦</div>
+            <h2>Bạn chưa có cửa hàng</h2>
+            <p>Tạo cửa hàng đầu tiên để bắt đầu quản lý sản phẩm và đơn hàng.</p>
+            <a class="btn btn-primary" asp-action="Create">Tạo cửa hàng đầu tiên</a>
+        </div>
+    }
+    else
+    {
+        <div class="store-grid">
+            @foreach (var store in Model.Stores)
+            {
+                var isActive = store.Id == Model.ActiveStoreId;
+                <article class="content-card store-card @(isActive ? "active" : null)">
+                    <div class="store-card-top"><span class="store-card-icon">▦</span>@if (isActive) { <span class="active-store-badge">Đang sử dụng</span> }</div>
+                    <h2>@store.Name</h2>
+                    <p>@(string.IsNullOrWhiteSpace(store.Address) ? "Chưa cập nhật địa chỉ" : store.Address)</p>
+                    <div class="store-role">@store.Role</div>
+                    @if (isActive)
+                    {
+                        <a class="btn btn-light-primary w-100" asp-controller="Home" asp-action="Index">Mở dashboard</a>
+                    }
+                    else
+                    {
+                        <form asp-action="Switch" method="post">
+                            <input type="hidden" name="storeId" value="@store.Id" />
+                            <button class="btn btn-outline-primary w-100" type="submit">Chuyển sang cửa hàng này</button>
+                        </form>
+                    }
+                </article>
+            }
+        </div>
+    }
+</section>

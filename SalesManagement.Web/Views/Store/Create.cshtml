@@ -1,0 +1,34 @@
+@model CreateStoreViewModel
+@{
+    ViewData["Title"] = "Tạo cửa hàng";
+}
+
+<section class="store-form-wrap">
+    <div class="content-card store-form-card">
+        <span class="eyebrow">Thiết lập cửa hàng</span>
+        <h1>Tạo cửa hàng mới</h1>
+        <p class="text-muted">Bạn sẽ là chủ sở hữu và có toàn quyền quản lý cửa hàng này.</p>
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label fw-semibold"></label>
+                <input asp-for="Name" class="form-control" placeholder="Ví dụ: Cửa hàng Minh Anh" autofocus />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Address" class="form-label fw-semibold"></label>
+                <input asp-for="Address" class="form-control" placeholder="Địa chỉ cửa hàng" />
+                <span asp-validation-for="Address" class="text-danger small"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="Phone" class="form-label fw-semibold"></label>
+                <input asp-for="Phone" class="form-control" placeholder="Số điện thoại liên hệ" />
+                <span asp-validation-for="Phone" class="text-danger small"></span>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary flex-grow-1" type="submit">Tạo và sử dụng cửa hàng</button>
+                <a class="btn btn-light-primary" asp-action="Select">Hủy</a>
+            </div>
+        </form>
+    </div>
+</section>

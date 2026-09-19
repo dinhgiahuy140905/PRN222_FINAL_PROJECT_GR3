@@ -13,5 +13,8 @@
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public ICollection<StoreMember> StoreMembers { get; set; } = new List<StoreMember>();
+
+        public ICollection<InventoryTransaction> InventoryTransactions { get; set; }
+            = new List<InventoryTransaction>();
     }
 }

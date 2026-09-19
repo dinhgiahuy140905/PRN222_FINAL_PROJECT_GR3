@@ -1,0 +1,21 @@
+@{
+    ViewData["Title"] = "Không có quyền truy cập";
+}
+
+<section class="access-denied-card content-card">
+    <div class="access-denied-icon" aria-hidden="true">!</div>
+    <span class="eyebrow">Truy cập bị từ chối</span>
+    <h1>Bạn không có quyền mở trang này</h1>
+    <p>Vui lòng quay lại trang tổng quan hoặc đăng nhập bằng tài khoản có quyền phù hợp.</p>
+    <div class="access-denied-actions">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Về trang tổng quan</a>
+        }
+        else
+        {
+            <a class="btn btn-primary" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+        }
+        <button class="btn btn-light-primary" type="button" onclick="history.back()">Quay lại</button>
+    </div>
+</section>

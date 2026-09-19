@@ -1,0 +1,3 @@
+@model ProductFormViewModel
+@{ ViewData["Title"] = "Cập nhật sản phẩm"; }
+<section class="entity-form-wrap"><div class="content-card entity-form-card"><span class="eyebrow">Kho hàng</span><h1>Cập nhật sản phẩm</h1><p class="text-muted">Tồn kho được thay đổi riêng để đảm bảo có lịch sử giao dịch.</p><form asp-action="Edit" asp-route-id="@Model.Id" method="post"><partial name="_ProductForm" model="Model" /><div class="form-actions"><button class="btn btn-primary" type="submit">Lưu thay đổi</button><a class="btn btn-light-primary" asp-action="Index">Hủy</a></div></form></div></section>

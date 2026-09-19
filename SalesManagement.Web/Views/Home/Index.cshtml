@@ -1,4 +1,44 @@
-@{ ViewData["Title"] = "Dashboard"; }
-<div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4 welcome"><div><h1>Chào mừng trở lại 👋</h1><p class="text-muted mb-0">Theo dõi tình hình kinh doanh của bạn hôm nay.</p></div><button class="btn btn-primary px-4">+ Tạo đơn hàng</button></div>
-<div class="row g-4 mb-4"><div class="col-sm-6 col-xl-3"><div class="stat-card"><div class="d-flex justify-content-between"><span class="stat-icon" style="background:#e9e7ff;color:#5147d9">₫</span><span class="trend up">↗ 12.5%</span></div><div class="stat-value">₫24.580.000</div><div class="stat-label">Doanh thu tháng này</div></div></div><div class="col-sm-6 col-xl-3"><div class="stat-card"><div class="d-flex justify-content-between"><span class="stat-icon" style="background:#dff8ee;color:#12805e">▣</span><span class="trend up">↗ 8.2%</span></div><div class="stat-value">356</div><div class="stat-label">Đơn hàng</div></div></div><div class="col-sm-6 col-xl-3"><div class="stat-card"><div class="d-flex justify-content-between"><span class="stat-icon" style="background:#fff0d8;color:#b36d00">◈</span><span class="trend up">↗ 5.4%</span></div><div class="stat-value">1.248</div><div class="stat-label">Khách hàng</div></div></div><div class="col-sm-6 col-xl-3"><div class="stat-card"><div class="d-flex justify-content-between"><span class="stat-icon" style="background:#e2f0ff;color:#2475c6">▤</span><span class="trend neutral">Ổn định</span></div><div class="stat-value">89</div><div class="stat-label">Sản phẩm đang bán</div></div></div></div>
-<div class="row g-4"><div class="col-lg-8"><div class="content-card"><div class="d-flex justify-content-between align-items-center"><div><h2>Đơn hàng gần đây</h2><p class="text-muted small mb-0 mt-1">Các giao dịch mới nhất trong hệ thống</p></div><a class="btn btn-sm btn-light-primary" href="#">Xem tất cả</a></div><div class="table-responsive"><table class="table"><thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead><tbody><tr><td class="fw-semibold">#DH-1024</td><td>Nguyễn Minh Anh</td><td>Hôm nay, 10:24</td><td class="fw-semibold">₫1.250.000</td><td><span class="badge-soft badge-success">Đã hoàn thành</span></td></tr><tr><td class="fw-semibold">#DH-1023</td><td>Trần Hoàng Nam</td><td>Hôm nay, 09:15</td><td class="fw-semibold">₫860.000</td><td><span class="badge-soft badge-warning">Đang xử lý</span></td></tr><tr><td class="fw-semibold">#DH-1022</td><td>Lê Thu Hà</td><td>Hôm qua, 16:42</td><td class="fw-semibold">₫2.100.000</td><td><span class="badge-soft badge-success">Đã hoàn thành</span></td></tr></tbody></table></div></div></div><div class="col-lg-4"><div class="content-card h-100"><h2>Thao tác nhanh</h2><p class="text-muted small mt-1 mb-4">Quản lý cửa hàng hiệu quả hơn</p><div class="d-grid gap-3"><a href="#" class="btn btn-light-primary text-start py-3">＋ <span class="ms-2">Thêm sản phẩm mới</span></a><a href="#" class="btn btn-light-primary text-start py-3">▣ <span class="ms-2">Xem báo cáo doanh thu</span></a><a href="#" class="btn btn-light-primary text-start py-3">◈ <span class="ms-2">Quản lý khách hàng</span></a></div></div></div></div>
+@{
+    ViewData["Title"] = "Tổng quan";
+    var displayName = User.Identity?.IsAuthenticated == true ? User.Identity.Name : "bạn";
+}
+
+<section class="welcome-panel mb-4">
+    <div><span class="eyebrow">Tổng quan cửa hàng</span><h1>Chào mừng trở lại, @displayName!</h1><p>Theo dõi hiệu suất kinh doanh và xử lý công việc quan trọng trong ngày.</p></div>
+    <button class="btn btn-primary action-button" type="button"><span aria-hidden="true">＋</span> Tạo đơn hàng</button>
+</section>
+
+<section class="row g-3 g-xl-4 mb-4" aria-label="Chỉ số kinh doanh">
+    <div class="col-sm-6 col-xl-3"><article class="stat-card"><div class="stat-card-top"><span class="stat-icon stat-icon-purple" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3" /></svg></span><span class="trend up">↗ 12,5%</span></div><div class="stat-value">24.580.000 ₫</div><div class="stat-label">Doanh thu tháng này</div><div class="stat-note">so với tháng trước</div></article></div>
+    <div class="col-sm-6 col-xl-3"><article class="stat-card"><div class="stat-card-top"><span class="stat-icon stat-icon-green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7h12l1 13H5L6 7Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></svg></span><span class="trend up">↗ 8,2%</span></div><div class="stat-value">356</div><div class="stat-label">Đơn hàng</div><div class="stat-note">42 đơn cần xử lý</div></article></div>
+    <div class="col-sm-6 col-xl-3"><article class="stat-card"><div class="stat-card-top"><span class="stat-icon stat-icon-orange" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg></span><span class="trend up">↗ 5,4%</span></div><div class="stat-value">1.248</div><div class="stat-label">Khách hàng</div><div class="stat-note">68 khách hàng mới</div></article></div>
+    <div class="col-sm-6 col-xl-3"><article class="stat-card"><div class="stat-card-top"><span class="stat-icon stat-icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4-8 4-8-4Z" /><path d="m4 7v10l8 4 8-4V7M12 11v10" /></svg></span><span class="trend neutral">Ổn định</span></div><div class="stat-value">89</div><div class="stat-label">Sản phẩm đang bán</div><div class="stat-note">7 sản phẩm sắp hết</div></article></div>
+</section>
+
+<section class="row g-4 mb-4">
+    <div class="col-xl-8"><article class="content-card revenue-card h-100">
+        <div class="section-heading"><div><span class="eyebrow">Hiệu suất</span><h2>Doanh thu 7 ngày gần nhất</h2></div><select class="form-select form-select-sm period-select" aria-label="Chọn thời gian thống kê"><option>7 ngày qua</option><option>30 ngày qua</option></select></div>
+        <div class="revenue-summary"><strong>18.420.000 ₫</strong><span class="trend up">↗ 9,8% so với tuần trước</span></div>
+        <div class="chart-wrap" role="img" aria-label="Biểu đồ doanh thu tăng dần trong 7 ngày"><div class="chart-grid"><i></i><i></i><i></i><i></i></div><svg class="revenue-chart" viewBox="0 0 700 220" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6257e7" stop-opacity=".28" /><stop offset="100%" stop-color="#6257e7" stop-opacity="0" /></linearGradient></defs><path class="chart-area" d="M0 176 C55 158 82 168 116 145 S190 154 233 122 S305 132 350 98 S430 116 466 79 S548 96 583 58 S660 66 700 25 L700 220 L0 220 Z" /><path class="chart-line" d="M0 176 C55 158 82 168 116 145 S190 154 233 122 S305 132 350 98 S430 116 466 79 S548 96 583 58 S660 66 700 25" /></svg><div class="chart-labels"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div></div>
+    </article></div>
+    <div class="col-xl-4"><article class="content-card h-100">
+        <div class="section-heading"><div><span class="eyebrow">Hôm nay</span><h2>Tiến độ đơn hàng</h2></div><span class="order-total">42 đơn</span></div>
+        <div class="progress-ring-wrap"><div class="progress-ring"><div><strong>76%</strong><span>hoàn tất</span></div></div><div class="status-list"><div><span><i class="status-dot dot-green"></i>Hoàn thành</span><strong>32</strong></div><div><span><i class="status-dot dot-orange"></i>Đang xử lý</span><strong>7</strong></div><div><span><i class="status-dot dot-purple"></i>Chờ xác nhận</span><strong>3</strong></div></div></div>
+    </article></div>
+</section>
+
+<section class="row g-4">
+    <div class="col-xl-8"><article class="content-card">
+        <div class="section-heading"><div><span class="eyebrow">Mới cập nhật</span><h2>Đơn hàng gần đây</h2></div><a class="text-link" href="#">Xem tất cả <span aria-hidden="true">→</span></a></div>
+        <div class="table-responsive"><table class="table order-table"><thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Thời gian</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead><tbody>
+            <tr><td class="order-id">#DH-1024</td><td><span class="customer-avatar avatar-purple">MA</span>Nguyễn Minh Anh</td><td>Hôm nay, 10:24</td><td class="fw-semibold">1.250.000 ₫</td><td><span class="badge-soft badge-success">Hoàn thành</span></td></tr>
+            <tr><td class="order-id">#DH-1023</td><td><span class="customer-avatar avatar-orange">HN</span>Trần Hoàng Nam</td><td>Hôm nay, 09:15</td><td class="fw-semibold">860.000 ₫</td><td><span class="badge-soft badge-warning">Đang xử lý</span></td></tr>
+            <tr><td class="order-id">#DH-1022</td><td><span class="customer-avatar avatar-blue">TH</span>Lê Thu Hà</td><td>Hôm qua, 16:42</td><td class="fw-semibold">2.100.000 ₫</td><td><span class="badge-soft badge-success">Hoàn thành</span></td></tr>
+        </tbody></table></div>
+    </article></div>
+    <div class="col-xl-4"><article class="content-card h-100"><span class="eyebrow">Lối tắt</span><h2>Thao tác nhanh</h2><div class="quick-actions">
+        <a asp-controller="Product" asp-action="Create"><span class="quick-icon stat-icon-purple">＋</span><span><strong>Thêm sản phẩm</strong><small>Tạo sản phẩm mới</small></span><b>→</b></a>
+        <a href="#"><span class="quick-icon stat-icon-green">↗</span><span><strong>Xem báo cáo</strong><small>Phân tích doanh thu</small></span><b>→</b></a>
+        <a href="#"><span class="quick-icon stat-icon-orange">◇</span><span><strong>Khách hàng</strong><small>Quản lý danh sách</small></span><b>→</b></a>
+    </div></article></div>
+</section>

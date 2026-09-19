@@ -1,11 +1,79 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#172554" />
     <title>@ViewData["Title"] - SalesHub</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /><link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <div class="app-shell"><aside class="sidebar"><a class="brand" asp-controller="Home" asp-action="Index"><span class="brand-mark">S</span><span>SalesHub</span></a><div class="sidebar-label">Tổng quan</div><nav><a class="nav-link active" asp-controller="Home" asp-action="Index"><span class="nav-icon">⌂</span><span>Dashboard</span></a><a class="nav-link" href="#"><span class="nav-icon">▣</span><span>Đơn hàng</span></a><a class="nav-link" href="#"><span class="nav-icon">▤</span><span>Sản phẩm</span></a><a class="nav-link" href="#"><span class="nav-icon">◈</span><span>Khách hàng</span></a></nav><div class="sidebar-label mt-4">Quản lý</div><nav><a class="nav-link" href="#"><span class="nav-icon">▦</span><span>Cửa hàng</span></a><a class="nav-link" href="#"><span class="nav-icon">⚙</span><span>Cài đặt</span></a></nav></aside><div class="main-content"><header class="topbar"><span class="text-muted small">Thứ tư, ngày 17 tháng 9, 2026</span><div class="d-flex align-items-center gap-3"><span class="text-muted">🔔</span>@if (User.Identity?.IsAuthenticated == true) { <span class="avatar">@User.Identity.Name?.Substring(0, 1).ToUpper()</span><span class="small fw-semibold">@User.Identity.Name</span> } else { <a class="btn btn-sm btn-light-primary" asp-controller="Account" asp-action="Login">Đăng nhập</a> }</div></header><main class="page-content">@RenderBody()</main><footer class="footer text-muted small">© 2026 SalesHub · Nền tảng quản lý bán hàng đa cửa hàng</footer></div></div>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>@await RenderSectionAsync("Scripts", required: false)
-</body></html>
+    <div class="app-shell">
+        <aside class="sidebar" id="appSidebar">
+            <a class="brand" asp-controller="Home" asp-action="Index" aria-label="SalesHub - Trang chủ"><span class="brand-mark">S</span><span>Sales<span>Hub</span></span></a>
+            <div class="sidebar-label">Tổng quan</div>
+            <nav aria-label="Điều hướng chính">
+                <a class="nav-link active" asp-controller="Home" asp-action="Index"><span class="nav-icon">⌂</span><span>Dashboard</span></a>
+                <a class="nav-link" href="#"><span class="nav-icon">▣</span><span>Đơn hàng</span><span class="nav-count">42</span></a>
+                <a class="nav-link" asp-controller="Product" asp-action="Index"><span class="nav-icon">▤</span><span>Sản phẩm</span></a>
+                <a class="nav-link" href="#"><span class="nav-icon">◇</span><span>Khách hàng</span></a>
+            </nav>
+            <div class="sidebar-label mt-4">Quản lý</div>
+            <nav aria-label="Điều hướng quản lý">
+                <a class="nav-link" asp-controller="Store" asp-action="Select"><span class="nav-icon">▦</span><span>Cửa hàng</span></a>
+                <a class="nav-link" href="#"><span class="nav-icon">⚙</span><span>Cài đặt</span></a>
+            </nav>
+            <div class="sidebar-help"><span>?</span><div><strong>Cần hỗ trợ?</strong><small>Liên hệ đội ngũ SalesHub</small></div></div>
+        </aside>
+        <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Đóng menu"></button>
+
+        <div class="main-content">
+            <header class="topbar">
+                <div class="topbar-start"><button class="menu-toggle" id="menuToggle" type="button" aria-controls="appSidebar" aria-expanded="false" aria-label="Mở menu">☰</button><div><strong>@ViewData["Title"]</strong><span>@DateTime.Now.ToString("dd/MM/yyyy")</span></div></div>
+                <div class="topbar-actions">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        var storeName = User.FindFirst(SalesManagement.Web.Services.StoreClaimTypes.StoreName)?.Value;
+                        <a class="store-switcher" asp-controller="Store" asp-action="Select" title="Chuyển cửa hàng">
+                            <span>▦</span>
+                            <span><small>Cửa hàng hiện tại</small><strong>@(storeName ?? "Chưa chọn cửa hàng")</strong></span>
+                            <b>⌄</b>
+                        </a>
+                    }
+                    <button class="icon-button" type="button" aria-label="Thông báo"><span>♢</span><i></i></button>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="user-info"><span class="avatar">@User.Identity.Name?.Substring(0, 1).ToUpper()</span><span><strong>@User.Identity.Name</strong><small>Quản trị viên</small></span></div>
+                        <form asp-controller="Account" asp-action="Logout" method="post"><button class="logout-button" type="submit">Đăng xuất</button></form>
+                    }
+                    else
+                    {
+                        <a class="btn btn-sm btn-light-primary" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                        <a class="btn btn-sm btn-primary d-none d-sm-inline-flex" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                    }
+                </div>
+            </header>
+            <main class="page-content">@RenderBody()</main>
+            <footer class="footer">© @DateTime.Now.Year SalesHub · Nền tảng quản lý bán hàng đa cửa hàng</footer>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (() => {
+            const body = document.body;
+            const toggle = document.getElementById(''menuToggle'');
+            const backdrop = document.getElementById(''sidebarBackdrop'');
+            const setMenu = (open) => {
+                body.classList.toggle(''sidebar-open'', open);
+                toggle?.setAttribute(''aria-expanded'', open.toString());
+            };
+            toggle?.addEventListener(''click'', () => setMenu(!body.classList.contains(''sidebar-open'')));
+            backdrop?.addEventListener(''click'', () => setMenu(false));
+            window.addEventListener(''resize'', () => { if (window.innerWidth >= 768) setMenu(false); });
+        })();
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

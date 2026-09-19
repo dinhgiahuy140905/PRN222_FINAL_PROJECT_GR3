@@ -1,0 +1,12 @@
+@model StockAdjustmentViewModel
+@{ ViewData["Title"] = "Điều chỉnh tồn kho"; }
+<section class="entity-form-wrap"><div class="content-card stock-form-card">
+    <span class="eyebrow">Tồn kho</span><h1>Điều chỉnh số lượng</h1>
+    <div class="stock-product-summary"><span class="product-thumb">▤</span><span><strong>@Model.ProductName</strong><small>SKU: @Model.Sku</small></span><div><small>Tồn hiện tại</small><strong>@Model.CurrentQuantity</strong></div></div>
+    <form asp-action="AdjustStock" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div><input asp-for="ProductId" type="hidden" />
+        <div class="mb-3"><label asp-for="QuantityChange" class="form-label fw-semibold"></label><input asp-for="QuantityChange" class="form-control" placeholder="Ví dụ: 10 để nhập, -3 để xuất" /><div class="form-text">Nhập số dương để tăng kho, số âm để giảm kho.</div><span asp-validation-for="QuantityChange" class="text-danger small"></span></div>
+        <div class="mb-4"><label asp-for="Note" class="form-label fw-semibold"></label><textarea asp-for="Note" class="form-control" rows="3" placeholder="Lý do kiểm kê hoặc điều chỉnh"></textarea><span asp-validation-for="Note" class="text-danger small"></span></div>
+        <div class="form-actions"><button class="btn btn-primary" type="submit">Cập nhật tồn kho</button><a class="btn btn-light-primary" asp-action="Index">Hủy</a></div>
+    </form>
+</div></section>
