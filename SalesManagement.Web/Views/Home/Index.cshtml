@@ -1,44 +1,89 @@
 @{
-    ViewData["Title"] = "Tổng quan";
-    var displayName = User.Identity?.IsAuthenticated == true ? User.Identity.Name : "bạn";
+    Layout = "_LandingLayout";
+    ViewData["Title"] = "Quản lý bán hàng đa cửa hàng";
 }
 
-<section class="welcome-panel mb-4">
-    <div><span class="eyebrow">Tổng quan cửa hàng</span><h1>Chào mừng trở lại, @displayName!</h1><p>Theo dõi hiệu suất kinh doanh và xử lý công việc quan trọng trong ngày.</p></div>
-    <button class="btn btn-primary action-button" type="button"><span aria-hidden="true">＋</span> Tạo đơn hàng</button>
+<section class="landing-hero" id="home">
+    <div class="landing-container hero-grid">
+        <div class="hero-copy">
+            <span class="landing-kicker"><i></i> Nền tảng quản lý bán hàng thế hệ mới</span>
+            <h1>Run your store<br /><span>from one place.</span></h1>
+            <p>Quản lý doanh thu, tồn kho, nhân viên và nhiều cửa hàng trong một không gian làm việc đơn giản.</p>
+            <div class="hero-actions">
+                <a class="landing-btn landing-btn-primary" asp-controller="Account" asp-action="Register">Bắt đầu miễn phí <span>→</span></a>
+                <a class="landing-btn landing-btn-ghost" href="#capabilities"><span class="play-icon">▶</span> Khám phá tính năng</a>
+            </div>
+            <div class="hero-trust"><span>✓ Không cần thẻ thanh toán</span><span>✓ Thiết lập trong vài phút</span></div>
+        </div>
+        <div class="hero-product">
+            <div class="hero-glow"></div>
+            <div class="browser-frame">
+                <div class="browser-bar"><span></span><span></span><span></span><small>app.saleshub.vn/dashboard</small></div>
+                <div class="mini-app">
+                    <aside>
+                        <b><i>S</i> Sales<span>Hub</span></b>
+                        <em class="selected">⌂ <small>Dashboard</small></em><em>▣ <small>Đơn hàng</small></em><em>▤ <small>Sản phẩm</small></em><em>◇ <small>Khách hàng</small></em>
+                    </aside>
+                    <main>
+                        <div class="mini-top"><span><b>Tổng quan</b><small>Hiệu suất hôm nay</small></span><i>MA</i></div>
+                        <div class="mini-stats"><div><small>Doanh thu</small><b>24,5tr</b><em>↗ 12,5%</em></div><div><small>Đơn hàng</small><b>356</b><em>↗ 8,2%</em></div><div><small>Khách hàng</small><b>1.248</b><em>↗ 5,4%</em></div></div>
+                        <div class="mini-chart"><span><b>Doanh thu tuần</b><small>18.420.000 ₫</small></span><svg viewBox="0 0 500 150" preserveAspectRatio="none"><defs><linearGradient id="heroChart" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#756cf2" stop-opacity=".3"/><stop offset="1" stop-color="#756cf2" stop-opacity="0"/></linearGradient></defs><path d="M0 125 C50 110 70 120 105 91 S165 110 205 75 S275 90 315 54 S380 72 420 36 S470 44 500 15 L500 150 L0 150Z" fill="url(#heroChart)"/><path d="M0 125 C50 110 70 120 105 91 S165 110 205 75 S275 90 315 54 S380 72 420 36 S470 44 500 15" fill="none" stroke="#695ee8" stroke-width="3"/></svg></div>
+                    </main>
+                </div>
+            </div>
+            <div class="floating-proof proof-orders"><span>✓</span><div><b>+28 đơn hàng</b><small>trong hôm nay</small></div></div>
+            <div class="floating-proof proof-growth"><b>+32%</b><small>Tăng trưởng</small></div>
+        </div>
+    </div>
 </section>
 
-<section class="row g-3 g-xl-4 mb-4" aria-label="Chỉ số kinh doanh">
-    <div class="col-sm-6 col-xl-3"><article class="stat-card"><div class="stat-card-top"><span class="stat-icon stat-icon-purple" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3" /></svg></span><span class="trend up">↗ 12,5%</span></div><div class="stat-value">24.580.000 ₫</div><div class="stat-label">Doanh thu tháng này</div><div class="stat-note">so với tháng trước</div></article></div>
-    <div class="col-sm-6 col-xl-3"><article class="stat-card"><div class="stat-card-top"><span class="stat-icon stat-icon-green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7h12l1 13H5L6 7Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></svg></span><span class="trend up">↗ 8,2%</span></div><div class="stat-value">356</div><div class="stat-label">Đơn hàng</div><div class="stat-note">42 đơn cần xử lý</div></article></div>
-    <div class="col-sm-6 col-xl-3"><article class="stat-card"><div class="stat-card-top"><span class="stat-icon stat-icon-orange" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg></span><span class="trend up">↗ 5,4%</span></div><div class="stat-value">1.248</div><div class="stat-label">Khách hàng</div><div class="stat-note">68 khách hàng mới</div></article></div>
-    <div class="col-sm-6 col-xl-3"><article class="stat-card"><div class="stat-card-top"><span class="stat-icon stat-icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4-8 4-8-4Z" /><path d="m4 7v10l8 4 8-4V7M12 11v10" /></svg></span><span class="trend neutral">Ổn định</span></div><div class="stat-value">89</div><div class="stat-label">Sản phẩm đang bán</div><div class="stat-note">7 sản phẩm sắp hết</div></article></div>
+<section class="capabilities landing-section" id="capabilities">
+    <div class="landing-container">
+        <div class="section-intro centered"><span class="landing-kicker">Mọi thứ bạn cần</span><h2>Một nền tảng. Toàn bộ cửa hàng.</h2><p>Tập trung các hoạt động quan trọng để bạn có nhiều thời gian hơn cho việc phát triển kinh doanh.</p></div>
+        <div class="capability-grid">
+            <article><span class="feature-icon purple"><svg viewBox="0 0 24 24"><path d="M5 20V10m7 10V4m7 16v-7"/></svg></span><h3>Bán hàng</h3><p>Tạo đơn nhanh, theo dõi trạng thái và quản lý doanh thu theo thời gian thực.</p><a href="#sales">Khám phá <b>→</b></a></article>
+            <article><span class="feature-icon green"><svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span><h3>Tồn kho</h3><p>Kiểm soát số lượng, cảnh báo sắp hết và xem đầy đủ lịch sử biến động.</p><a href="#inventory">Khám phá <b>→</b></a></article>
+            <article><span class="feature-icon orange"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0m1-10a4 4 0 0 1 0 8"/></svg></span><h3>Đội ngũ</h3><p>Phân quyền rõ ràng và giúp nhân viên phối hợp trên cùng một dữ liệu.</p><a href="#team">Khám phá <b>→</b></a></article>
+            <article><span class="feature-icon blue"><svg viewBox="0 0 24 24"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg></span><h3>Báo cáo</h3><p>Biến dữ liệu bán hàng thành insight trực quan để ra quyết định tốt hơn.</p><a href="#reports">Khám phá <b>→</b></a></article>
+        </div>
+    </div>
 </section>
 
-<section class="row g-4 mb-4">
-    <div class="col-xl-8"><article class="content-card revenue-card h-100">
-        <div class="section-heading"><div><span class="eyebrow">Hiệu suất</span><h2>Doanh thu 7 ngày gần nhất</h2></div><select class="form-select form-select-sm period-select" aria-label="Chọn thời gian thống kê"><option>7 ngày qua</option><option>30 ngày qua</option></select></div>
-        <div class="revenue-summary"><strong>18.420.000 ₫</strong><span class="trend up">↗ 9,8% so với tuần trước</span></div>
-        <div class="chart-wrap" role="img" aria-label="Biểu đồ doanh thu tăng dần trong 7 ngày"><div class="chart-grid"><i></i><i></i><i></i><i></i></div><svg class="revenue-chart" viewBox="0 0 700 220" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6257e7" stop-opacity=".28" /><stop offset="100%" stop-color="#6257e7" stop-opacity="0" /></linearGradient></defs><path class="chart-area" d="M0 176 C55 158 82 168 116 145 S190 154 233 122 S305 132 350 98 S430 116 466 79 S548 96 583 58 S660 66 700 25 L700 220 L0 220 Z" /><path class="chart-line" d="M0 176 C55 158 82 168 116 145 S190 154 233 122 S305 132 350 98 S430 116 466 79 S548 96 583 58 S660 66 700 25" /></svg><div class="chart-labels"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div></div>
-    </article></div>
-    <div class="col-xl-4"><article class="content-card h-100">
-        <div class="section-heading"><div><span class="eyebrow">Hôm nay</span><h2>Tiến độ đơn hàng</h2></div><span class="order-total">42 đơn</span></div>
-        <div class="progress-ring-wrap"><div class="progress-ring"><div><strong>76%</strong><span>hoàn tất</span></div></div><div class="status-list"><div><span><i class="status-dot dot-green"></i>Hoàn thành</span><strong>32</strong></div><div><span><i class="status-dot dot-orange"></i>Đang xử lý</span><strong>7</strong></div><div><span><i class="status-dot dot-purple"></i>Chờ xác nhận</span><strong>3</strong></div></div></div>
-    </article></div>
+<section class="showcase landing-section" id="sales">
+    <div class="landing-container split-grid">
+        <div class="showcase-copy"><span class="landing-kicker">Bán hàng thông minh</span><h2>Mỗi đơn hàng đều rõ ràng từ đầu đến cuối</h2><p>Tạo và theo dõi đơn hàng trong một quy trình thống nhất. Không còn bảng tính rời rạc hay trạng thái bị bỏ quên.</p><ul><li><span>✓</span> Tạo đơn hàng chỉ trong vài thao tác</li><li><span>✓</span> Theo dõi trạng thái theo thời gian thực</li><li><span>✓</span> Lưu lịch sử khách hàng và thanh toán</li></ul><a class="text-arrow" asp-controller="Account" asp-action="Register">Bắt đầu quản lý bán hàng <b>→</b></a></div>
+        <div class="ui-card order-preview"><div class="ui-card-head"><span><b>Đơn hàng gần đây</b><small>24 đơn hôm nay</small></span><button>+ Tạo đơn</button></div><div class="ui-order"><i class="avatar-one">MA</i><span><b>Nguyễn Minh Anh</b><small>#DH-1024 · 10:24</small></span><strong>1.250.000 ₫</strong><em>Hoàn thành</em></div><div class="ui-order"><i class="avatar-two">HN</i><span><b>Trần Hoàng Nam</b><small>#DH-1023 · 09:15</small></span><strong>860.000 ₫</strong><em class="pending">Đang xử lý</em></div><div class="ui-order"><i class="avatar-three">TH</i><span><b>Lê Thu Hà</b><small>#DH-1022 · Hôm qua</small></span><strong>2.100.000 ₫</strong><em>Hoàn thành</em></div></div>
+    </div>
 </section>
 
-<section class="row g-4">
-    <div class="col-xl-8"><article class="content-card">
-        <div class="section-heading"><div><span class="eyebrow">Mới cập nhật</span><h2>Đơn hàng gần đây</h2></div><a class="text-link" href="#">Xem tất cả <span aria-hidden="true">→</span></a></div>
-        <div class="table-responsive"><table class="table order-table"><thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Thời gian</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead><tbody>
-            <tr><td class="order-id">#DH-1024</td><td><span class="customer-avatar avatar-purple">MA</span>Nguyễn Minh Anh</td><td>Hôm nay, 10:24</td><td class="fw-semibold">1.250.000 ₫</td><td><span class="badge-soft badge-success">Hoàn thành</span></td></tr>
-            <tr><td class="order-id">#DH-1023</td><td><span class="customer-avatar avatar-orange">HN</span>Trần Hoàng Nam</td><td>Hôm nay, 09:15</td><td class="fw-semibold">860.000 ₫</td><td><span class="badge-soft badge-warning">Đang xử lý</span></td></tr>
-            <tr><td class="order-id">#DH-1022</td><td><span class="customer-avatar avatar-blue">TH</span>Lê Thu Hà</td><td>Hôm qua, 16:42</td><td class="fw-semibold">2.100.000 ₫</td><td><span class="badge-soft badge-success">Hoàn thành</span></td></tr>
-        </tbody></table></div>
-    </article></div>
-    <div class="col-xl-4"><article class="content-card h-100"><span class="eyebrow">Lối tắt</span><h2>Thao tác nhanh</h2><div class="quick-actions">
-        <a asp-controller="Product" asp-action="Create"><span class="quick-icon stat-icon-purple">＋</span><span><strong>Thêm sản phẩm</strong><small>Tạo sản phẩm mới</small></span><b>→</b></a>
-        <a href="#"><span class="quick-icon stat-icon-green">↗</span><span><strong>Xem báo cáo</strong><small>Phân tích doanh thu</small></span><b>→</b></a>
-        <a href="#"><span class="quick-icon stat-icon-orange">◇</span><span><strong>Khách hàng</strong><small>Quản lý danh sách</small></span><b>→</b></a>
-    </div></article></div>
+<section class="showcase landing-section soft-section" id="inventory">
+    <div class="landing-container split-grid reverse">
+        <div class="inventory-preview ui-card"><div class="ui-card-head"><span><b>Tồn kho sản phẩm</b><small>Cập nhật vừa xong</small></span><em>89 sản phẩm</em></div><div class="stock-row"><span class="stock-icon purple">▤</span><span><b>Cà phê Arabica</b><small>SKU: CF-001</small></span><strong>128<small>Còn hàng</small></strong></div><div class="stock-row"><span class="stock-icon orange">▤</span><span><b>Syrup Caramel</b><small>SKU: SR-012</small></span><strong class="low">6<small>Sắp hết</small></strong></div><div class="stock-row"><span class="stock-icon green">▤</span><span><b>Ly giấy 500ml</b><small>SKU: LY-500</small></span><strong>420<small>Còn hàng</small></strong></div><div class="stock-alert">! 7 sản phẩm đã chạm ngưỡng cảnh báo</div></div>
+        <div class="showcase-copy"><span class="landing-kicker">Tồn kho chính xác</span><h2>Biết chính xác bạn đang có gì, ở đâu</h2><p>Mọi thay đổi đều được ghi lại theo từng cửa hàng, giúp số liệu luôn minh bạch và có thể kiểm tra.</p><ul><li><span>✓</span> Cảnh báo tồn kho thấp tự động</li><li><span>✓</span> Lịch sử nhập, xuất và điều chỉnh</li><li><span>✓</span> SKU riêng trong từng cửa hàng</li></ul></div>
+    </div>
+</section>
+
+<section class="showcase landing-section" id="stores">
+    <div class="landing-container split-grid">
+        <div class="showcase-copy"><span class="landing-kicker">Đa cửa hàng</span><h2>Một tài khoản, mọi chi nhánh</h2><p>Chuyển đổi giữa các cửa hàng mà dữ liệu vẫn được tách biệt rõ ràng. Mỗi thành viên chỉ thấy đúng nơi họ được cấp quyền.</p><ul><li><span>✓</span> Chuyển cửa hàng ngay trên dashboard</li><li><span>✓</span> Dữ liệu được cô lập theo Store ID</li><li><span>✓</span> Tổng quan hiệu suất từng chi nhánh</li></ul></div>
+        <div class="store-diagram"><div class="account-node"><i>MA</i><span><b>Tài khoản của bạn</b><small>owner@saleshub.vn</small></span></div><div class="diagram-line"><i></i><i></i><i></i></div><div class="store-nodes"><div><span>▦</span><b>Quận 1</b><small>Chủ sở hữu</small></div><div class="active"><span>▦</span><b>Thảo Điền</b><small>Đang sử dụng</small></div><div><span>▦</span><b>Phú Nhuận</b><small>Quản lý</small></div></div></div>
+    </div>
+</section>
+
+<section class="showcase landing-section dark-section" id="team">
+    <div class="landing-container split-grid reverse">
+        <div class="permission-preview"><div class="permission-head"><span><b>Thành viên cửa hàng</b><small>4 thành viên</small></span><button>+ Mời thành viên</button></div><div class="member-row"><i>MA</i><span><b>Minh Anh</b><small>minhanh@email.com</small></span><em>Chủ sở hữu</em></div><div class="member-row"><i>HN</i><span><b>Hoàng Nam</b><small>nam@email.com</small></span><em>Quản lý</em></div><div class="member-row"><i>TH</i><span><b>Thu Hà</b><small>ha@email.com</small></span><em>Nhân viên</em></div></div>
+        <div class="showcase-copy light-copy"><span class="landing-kicker">Làm việc cùng nhau</span><h2>Đúng người, đúng quyền, đúng cửa hàng</h2><p>Mời đội ngũ vào SalesHub và kiểm soát phạm vi làm việc của từng thành viên mà không chia sẻ tài khoản.</p><ul><li><span>✓</span> Vai trò chủ sở hữu và nhân viên</li><li><span>✓</span> Phân quyền theo từng cửa hàng</li><li><span>✓</span> Theo dõi thao tác quan trọng</li></ul></div>
+    </div>
+</section>
+
+<section class="showcase landing-section" id="reports">
+    <div class="landing-container split-grid">
+        <div class="showcase-copy"><span class="landing-kicker">Báo cáo trực quan</span><h2>Từ con số đến quyết định kinh doanh</h2><p>Hiểu điều gì đang tăng trưởng, sản phẩm nào cần chú ý và cửa hàng nào đang hoạt động hiệu quả nhất.</p><ul><li><span>✓</span> Doanh thu theo ngày, tuần và tháng</li><li><span>✓</span> So sánh hiệu suất cửa hàng</li><li><span>✓</span> Báo cáo sản phẩm và khách hàng</li></ul></div>
+        <div class="report-preview ui-card"><div class="ui-card-head"><span><b>Doanh thu tháng này</b><small>01–30 tháng 9</small></span><em>30 ngày qua ⌄</em></div><strong>248.580.000 ₫</strong><small class="growth-label">↗ 18,4% so với tháng trước</small><div class="bar-chart"><i style="height:35%"></i><i style="height:52%"></i><i style="height:45%"></i><i style="height:68%"></i><i style="height:58%"></i><i style="height:82%"></i><i style="height:95%"></i></div><div class="bar-labels"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div></div>
+    </div>
+</section>
+
+<section class="final-cta">
+    <div class="landing-container"><span class="landing-kicker">Sẵn sàng bắt đầu?</span><h2>Điều hành cửa hàng nhẹ nhàng hơn từ hôm nay.</h2><p>Tạo không gian làm việc đầu tiên của bạn chỉ trong vài phút.</p><div><a class="landing-btn landing-btn-white" asp-controller="Account" asp-action="Register">Bắt đầu miễn phí <span>→</span></a><a class="landing-btn landing-btn-outline" asp-controller="Account" asp-action="Login">Đăng nhập</a></div></div>
 </section>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SalesHub - Nền tảng quản lý bán hàng, tồn kho, đội ngũ và nhiều cửa hàng trong một nơi." />
+    <meta name="theme-color" content="#ffffff" />
+    <title>@ViewData["Title"] - SalesHub</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
+</head>
+<body class="landing-body">
+    <header class="landing-nav" id="landingNav">
+        <div class="landing-container nav-inner">
+            <a class="landing-brand" asp-controller="Home" asp-action="Index"><span>S</span><b>Sales<i>Hub</i></b></a>
+            <nav class="landing-links" id="landingMenu" aria-label="Điều hướng landing page"><a href="#capabilities">Tính năng</a><a href="#sales">Bán hàng</a><a href="#inventory">Tồn kho</a><a href="#stores">Đa cửa hàng</a><a href="#reports">Báo cáo</a></nav>
+            <div class="landing-auth">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a class="landing-login" asp-controller="Home" asp-action="Dashboard">Dashboard</a>
+                }
+                else
+                {
+                    <a class="landing-login" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                    <a class="landing-btn landing-btn-primary nav-cta" asp-controller="Account" asp-action="Register">Dùng thử miễn phí</a>
+                }
+            </div>
+            <button class="landing-menu-toggle" id="landingMenuToggle" type="button" aria-controls="landingMenu" aria-expanded="false" aria-label="Mở menu"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+    <main>@RenderBody()</main>
+    <footer class="landing-footer">
+        <div class="landing-container footer-grid"><div><a class="landing-brand" asp-controller="Home" asp-action="Index"><span>S</span><b>Sales<i>Hub</i></b></a><p>Quản lý cửa hàng rõ ràng hơn.<br />Phát triển kinh doanh tự tin hơn.</p></div><div><b>Sản phẩm</b><a href="#sales">Bán hàng</a><a href="#inventory">Tồn kho</a><a href="#stores">Đa cửa hàng</a></div><div><b>Hỗ trợ</b><a href="#">Trung tâm trợ giúp</a><a href="#">Liên hệ</a><a href="#">Điều khoản</a></div><div class="footer-news"><b>Nhận cập nhật</b><p>Những mẹo quản lý cửa hàng hữu ích.</p><form><input type="email" placeholder="Email của bạn" aria-label="Email nhận cập nhật" /><button type="button">→</button></form></div></div>
+        <div class="landing-container footer-bottom"><span>© @DateTime.Now.Year SalesHub. All rights reserved.</span><span>Made for growing businesses.</span></div>
+    </footer>
+    <script>
+        (() => {
+            const toggle = document.getElementById("landingMenuToggle");
+            const nav = document.getElementById("landingNav");
+            toggle?.addEventListener("click", () => {
+                const open = nav.classList.toggle("menu-open");
+                toggle.setAttribute("aria-expanded", open.toString());
+            });
+            document.querySelectorAll("#landingMenu a").forEach(link => link.addEventListener("click", () => nav.classList.remove("menu-open")));
+        })();
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

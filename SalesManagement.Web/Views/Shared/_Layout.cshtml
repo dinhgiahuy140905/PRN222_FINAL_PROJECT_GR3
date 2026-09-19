@@ -1,9 +1,13 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#172554" />
+    <meta name="theme-color" content="#211957" />
     <title>@ViewData["Title"] - SalesHub</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -11,37 +15,61 @@
 <body>
     <div class="app-shell">
         <aside class="sidebar" id="appSidebar">
-            <a class="brand" asp-controller="Home" asp-action="Index" aria-label="SalesHub - Trang chủ"><span class="brand-mark">S</span><span>Sales<span>Hub</span></span></a>
-            <div class="sidebar-label">Tổng quan</div>
-            <nav aria-label="Điều hướng chính">
-                <a class="nav-link active" asp-controller="Home" asp-action="Index"><span class="nav-icon">⌂</span><span>Dashboard</span></a>
-                <a class="nav-link" href="#"><span class="nav-icon">▣</span><span>Đơn hàng</span><span class="nav-count">42</span></a>
-                <a class="nav-link" asp-controller="Product" asp-action="Index"><span class="nav-icon">▤</span><span>Sản phẩm</span></a>
-                <a class="nav-link" href="#"><span class="nav-icon">◇</span><span>Khách hàng</span></a>
-            </nav>
-            <div class="sidebar-label mt-4">Quản lý</div>
-            <nav aria-label="Điều hướng quản lý">
-                <a class="nav-link" asp-controller="Store" asp-action="Select"><span class="nav-icon">▦</span><span>Cửa hàng</span></a>
-                <a class="nav-link" href="#"><span class="nav-icon">⚙</span><span>Cài đặt</span></a>
-            </nav>
-            <div class="sidebar-help"><span>?</span><div><strong>Cần hỗ trợ?</strong><small>Liên hệ đội ngũ SalesHub</small></div></div>
+            <div class="sidebar-header">
+                <a class="brand" asp-controller="Home" asp-action="Dashboard" aria-label="SalesHub - Dashboard"><span class="brand-mark">S</span><span>Sales<span>Hub</span></span></a>
+                <button class="sidebar-collapse" id="sidebarCollapse" type="button" aria-label="Thu gọn sidebar" title="Thu gọn sidebar">
+                    <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></svg>
+                </button>
+            </div>
+
+            <div class="sidebar-group">
+                <div class="sidebar-label">Tổng quan</div>
+                <nav aria-label="Điều hướng chính">
+                    <a class="nav-link @(currentController == "Home" && currentAction == "Dashboard" ? "active" : null)" asp-controller="Home" asp-action="Dashboard">
+                        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 11 12 3l9 8" /><path d="M5 10v10h14V10M9 20v-6h6v6" /></svg></span><span class="nav-text">Dashboard</span>
+                    </a>
+                    <a class="nav-link" href="#">
+                        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M6 7h12l1 13H5L6 7Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></svg></span><span class="nav-text">Đơn hàng</span>
+                    </a>
+                    <a class="nav-link @(currentController == "Product" || currentController == "Category" ? "active" : null)" asp-controller="Product" asp-action="Index">
+                        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4-8 4-8-4Z" /><path d="m4 7v10l8 4 8-4V7M12 11v10" /></svg></span><span class="nav-text">Sản phẩm</span>
+                    </a>
+                    <a class="nav-link" href="#">
+                        <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg></span><span class="nav-text">Khách hàng</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="sidebar-group management-group">
+                <div class="sidebar-label">Quản lý</div>
+                <nav aria-label="Điều hướng quản lý">
+                    <a class="nav-link @(currentController == "Store" ? "active" : null)" asp-controller="Store" asp-action="Select">
+                        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9h18l-2-5H5L3 9Z" /><path d="M5 9v11h14V9M9 20v-6h6v6" /><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" /></svg></span><span class="nav-text">Cửa hàng</span>
+                    </a>
+                    <a class="nav-link" href="#">
+                        <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.09A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.09A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.36.25.57.65.6 1.09V10h1v4h-.09c-.44.03-.84.24-1.09.6-.2.12-.34.26-.42.4Z" /></svg></span><span class="nav-text">Cài đặt</span>
+                    </a>
+                </nav>
+            </div>
+
+            <a class="sidebar-help" href="#">
+                <span class="help-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M9.8 9a2.4 2.4 0 1 1 3.2 2.26c-.63.28-1 .75-1 1.49V13M12 17h.01" /></svg></span>
+                <span class="help-copy"><strong>Cần hỗ trợ?</strong><small>Liên hệ đội ngũ SalesHub</small></span>
+                <svg class="help-arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
+            </a>
         </aside>
         <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Đóng menu"></button>
 
         <div class="main-content">
             <header class="topbar">
-                <div class="topbar-start"><button class="menu-toggle" id="menuToggle" type="button" aria-controls="appSidebar" aria-expanded="false" aria-label="Mở menu">☰</button><div><strong>@ViewData["Title"]</strong><span>@DateTime.Now.ToString("dd/MM/yyyy")</span></div></div>
+                <div class="topbar-start"><button class="menu-toggle" id="menuToggle" type="button" aria-controls="appSidebar" aria-expanded="false" aria-label="Mở menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button><div><strong>@ViewData["Title"]</strong><span>@DateTime.Now.ToString("dd/MM/yyyy")</span></div></div>
                 <div class="topbar-actions">
                     @if (User.Identity?.IsAuthenticated == true)
                     {
                         var storeName = User.FindFirst(SalesManagement.Web.Services.StoreClaimTypes.StoreName)?.Value;
-                        <a class="store-switcher" asp-controller="Store" asp-action="Select" title="Chuyển cửa hàng">
-                            <span>▦</span>
-                            <span><small>Cửa hàng hiện tại</small><strong>@(storeName ?? "Chưa chọn cửa hàng")</strong></span>
-                            <b>⌄</b>
-                        </a>
+                        <a class="store-switcher" asp-controller="Store" asp-action="Select" title="Chuyển cửa hàng"><span>▦</span><span><small>Cửa hàng hiện tại</small><strong>@(storeName ?? "Chưa chọn cửa hàng")</strong></span><b>⌄</b></a>
                     }
-                    <button class="icon-button" type="button" aria-label="Thông báo"><span>♢</span><i></i></button>
+                    <button class="icon-button" type="button" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg><i></i></button>
                     @if (User.Identity?.IsAuthenticated == true)
                     {
                         <div class="user-info"><span class="avatar">@User.Identity.Name?.Substring(0, 1).ToUpper()</span><span><strong>@User.Identity.Name</strong><small>Quản trị viên</small></span></div>
@@ -50,7 +78,6 @@
                     else
                     {
                         <a class="btn btn-sm btn-light-primary" asp-controller="Account" asp-action="Login">Đăng nhập</a>
-                        <a class="btn btn-sm btn-primary d-none d-sm-inline-flex" asp-controller="Account" asp-action="Register">Đăng ký</a>
                     }
                 </div>
             </header>
@@ -63,15 +90,26 @@
     <script>
         (() => {
             const body = document.body;
-            const toggle = document.getElementById(''menuToggle'');
-            const backdrop = document.getElementById(''sidebarBackdrop'');
-            const setMenu = (open) => {
-                body.classList.toggle(''sidebar-open'', open);
-                toggle?.setAttribute(''aria-expanded'', open.toString());
+            const menuToggle = document.getElementById("menuToggle");
+            const backdrop = document.getElementById("sidebarBackdrop");
+            const collapseToggle = document.getElementById("sidebarCollapse");
+            const setMenu = open => {
+                body.classList.toggle("sidebar-open", open);
+                menuToggle?.setAttribute("aria-expanded", open.toString());
             };
-            toggle?.addEventListener(''click'', () => setMenu(!body.classList.contains(''sidebar-open'')));
-            backdrop?.addEventListener(''click'', () => setMenu(false));
-            window.addEventListener(''resize'', () => { if (window.innerWidth >= 768) setMenu(false); });
+            const setCollapsed = collapsed => {
+                body.classList.toggle("sidebar-collapsed", collapsed);
+                collapseToggle?.setAttribute("aria-label", collapsed ? "Mở rộng sidebar" : "Thu gọn sidebar");
+            };
+            setCollapsed(localStorage.getItem("saleshub-sidebar-collapsed") === "true");
+            menuToggle?.addEventListener("click", () => setMenu(!body.classList.contains("sidebar-open")));
+            backdrop?.addEventListener("click", () => setMenu(false));
+            collapseToggle?.addEventListener("click", () => {
+                const collapsed = !body.classList.contains("sidebar-collapsed");
+                setCollapsed(collapsed);
+                localStorage.setItem("saleshub-sidebar-collapsed", collapsed.toString());
+            });
+            window.addEventListener("resize", () => { if (window.innerWidth >= 768) setMenu(false); });
         })();
     </script>
     @await RenderSectionAsync("Scripts", required: false)

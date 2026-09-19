@@ -1,0 +1,145 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Tổng quan";
+    var displayName = User.Identity?.Name ?? "bạn";
+}
+
+<section class="welcome-panel mb-4">
+    <div>
+        <span class="eyebrow">@Model.StoreName</span>
+        <h1>Chào mừng trở lại, @displayName!</h1>
+        <p>@(Model.IsNewStore ? "Cửa hàng đã sẵn sàng. Hãy hoàn tất vài bước đầu tiên để bắt đầu." : "Đây là dữ liệu thực tế của cửa hàng bạn đang quản lý.")</p>
+    </div>
+    <a class="btn btn-primary action-button" asp-controller="Product" asp-action="Create"><span aria-hidden="true">＋</span> Thêm sản phẩm</a>
+</section>
+
+@if (Model.IsNewStore)
+{
+    <section class="onboarding-hero content-card mb-4">
+        <div class="onboarding-copy">
+            <span class="onboarding-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18" /></svg>
+            </span>
+            <div>
+                <span class="eyebrow">Bắt đầu với SalesHub</span>
+                <h2>Thiết lập cửa hàng đầu tiên của bạn</h2>
+                <p>Dashboard đang trống vì cửa hàng chưa có sản phẩm hay giao dịch. Dữ liệu sẽ tự động xuất hiện khi bạn bắt đầu sử dụng hệ thống.</p>
+                <a class="btn btn-primary" asp-controller="Product" asp-action="Create">Thêm sản phẩm đầu tiên <span aria-hidden="true">→</span></a>
+            </div>
+        </div>
+        <div class="setup-progress">
+            <div><span>Tiến độ thiết lập</span><strong>1/4 bước</strong></div>
+            <div class="setup-progress-track"><i></i></div>
+            <small>Bạn đã tạo cửa hàng thành công</small>
+        </div>
+    </section>
+
+    <section class="setup-grid mb-4" aria-label="Các bước thiết lập cửa hàng">
+        <article class="setup-step completed">
+            <span class="setup-step-icon">✓</span>
+            <div><small>Bước 1</small><h3>Tạo cửa hàng</h3><p>@Model.StoreName đã sẵn sàng.</p></div>
+        </article>
+        <a class="setup-step current" asp-controller="Product" asp-action="Create">
+            <span class="setup-step-icon">
+                <svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4-8 4-8-4Z" /><path d="m4 7v10l8 4 8-4V7M12 11v10" /></svg>
+            </span>
+            <div><small>Bước 2 · Tiếp theo</small><h3>Thêm sản phẩm</h3><p>Tạo sản phẩm và nhập tồn kho ban đầu.</p></div>
+            <b>→</b>
+        </a>
+        <article class="setup-step locked">
+            <span class="setup-step-icon">
+                <svg viewBox="0 0 24 24"><path d="M6 7h12l1 13H5L6 7Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></svg>
+            </span>
+            <div><small>Bước 3</small><h3>Tạo đơn hàng</h3><p>Sẽ mở sau khi có sản phẩm.</p></div>
+        </article>
+        <article class="setup-step locked">
+            <span class="setup-step-icon">
+                <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4" /><path d="M2 21a7 7 0 0 1 14 0m1-10a4 4 0 0 1 0 8" /></svg>
+            </span>
+            <div><small>Bước 4</small><h3>Mời đội ngũ</h3><p>Thêm thành viên và phân quyền.</p></div>
+        </article>
+    </section>
+
+    <section class="content-card getting-started-note">
+        <div class="getting-started-visual">
+            <span>▤</span><i></i><span>▣</span><i></i><span>↗</span>
+        </div>
+        <div><h2>Dữ liệu sẽ xuất hiện như thế nào?</h2><p>Thêm sản phẩm để theo dõi tồn kho. Khi module đơn hàng được sử dụng, doanh thu và báo cáo bán hàng sẽ tự động được tổng hợp tại đây.</p></div>
+    </section>
+}
+else
+{
+    <section class="row g-3 g-xl-4 mb-4" aria-label="Chỉ số kinh doanh">
+        <div class="col-sm-6 col-xl-3">
+            <article class="stat-card">
+                <div class="stat-card-top"><span class="stat-icon stat-icon-purple"><svg viewBox="0 0 24 24"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3" /></svg></span><span class="data-status">Chưa có dữ liệu</span></div>
+                <div class="stat-value">@Model.Revenue.ToString("N0") ₫</div><div class="stat-label">Doanh thu tháng này</div><div class="stat-note">Sẽ cập nhật khi có đơn hàng</div>
+            </article>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <article class="stat-card">
+                <div class="stat-card-top"><span class="stat-icon stat-icon-green"><svg viewBox="0 0 24 24"><path d="M6 7h12l1 13H5L6 7Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></svg></span><span class="data-status">Thực tế</span></div>
+                <div class="stat-value">@Model.OrderCount</div><div class="stat-label">Đơn hàng</div><div class="stat-note">Chưa có giao dịch bán hàng</div>
+            </article>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <article class="stat-card">
+                <div class="stat-card-top"><span class="stat-icon stat-icon-orange"><svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4-8 4-8-4Z" /><path d="m4 7v10l8 4 8-4V7M12 11v10" /></svg></span><span class="data-status real">Dữ liệu thực</span></div>
+                <div class="stat-value">@Model.ProductCount</div><div class="stat-label">Sản phẩm đang bán</div><div class="stat-note">@Model.LowStockCount sản phẩm cần chú ý</div>
+            </article>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <article class="stat-card">
+                <div class="stat-card-top"><span class="stat-icon stat-icon-blue"><svg viewBox="0 0 24 24"><path d="M4 8h16v12H4zM8 4h8v4M9 13h6" /></svg></span><span class="data-status real">Dữ liệu thực</span></div>
+                <div class="stat-value">@Model.TotalStock</div><div class="stat-label">Tổng số lượng tồn kho</div><div class="stat-note">Trên @Model.ProductCount sản phẩm</div>
+            </article>
+        </div>
+    </section>
+
+    <section class="row g-4">
+        <div class="col-xl-8">
+            <article class="content-card">
+                <div class="section-heading"><div><span class="eyebrow">Hoạt động thực tế</span><h2>Biến động tồn kho gần đây</h2></div><a class="text-link" asp-controller="Product" asp-action="Index">Quản lý kho →</a></div>
+                @if (Model.RecentInventoryActivities.Count == 0)
+                {
+                    <div class="dashboard-empty compact"><span>▤</span><h3>Chưa có biến động tồn kho</h3><p>Các lần nhập, xuất hoặc điều chỉnh sẽ xuất hiện tại đây.</p></div>
+                }
+                else
+                {
+                    <div class="inventory-activity-list">
+                        @foreach (var activity in Model.RecentInventoryActivities)
+                        {
+                            <div>
+                                <span class="activity-icon @(activity.QuantityChange >= 0 ? "increase" : "decrease")">@(activity.QuantityChange >= 0 ? "＋" : "−")</span>
+                                <span><strong>@activity.ProductName</strong><small>@activity.Sku · @(activity.Note ?? "Điều chỉnh tồn kho")</small></span>
+                                <span class="activity-quantity @(activity.QuantityChange >= 0 ? "increase" : "decrease")">@(activity.QuantityChange > 0 ? "+" : "")@activity.QuantityChange<small>Còn @activity.QuantityAfter</small></span>
+                                <time>@activity.CreatedAt.ToString("dd/MM/yyyy HH:mm")</time>
+                            </div>
+                        }
+                    </div>
+                }
+            </article>
+        </div>
+        <div class="col-xl-4">
+            <article class="content-card h-100">
+                <span class="eyebrow">Tình trạng kho</span><h2>Tổng quan sản phẩm</h2>
+                <div class="stock-health">
+                    <div><span>Sản phẩm hoạt động</span><strong>@Model.ProductCount</strong></div>
+                    <div><span>Tổng tồn kho</span><strong>@Model.TotalStock</strong></div>
+                    <div class="@(Model.LowStockCount > 0 ? "warning" : null)"><span>Sắp hết hàng</span><strong>@Model.LowStockCount</strong></div>
+                </div>
+                <div class="quick-actions dashboard-actions">
+                    <a asp-controller="Product" asp-action="Create"><span class="quick-icon stat-icon-purple">＋</span><span><strong>Thêm sản phẩm</strong><small>Tạo sản phẩm mới</small></span><b>→</b></a>
+                    <a asp-controller="Product" asp-action="Index" asp-route-lowStockOnly="true"><span class="quick-icon stat-icon-orange">!</span><span><strong>Kiểm tra sắp hết</strong><small>@Model.LowStockCount sản phẩm cần chú ý</small></span><b>→</b></a>
+                    <a asp-controller="Category" asp-action="Index"><span class="quick-icon stat-icon-green">◇</span><span><strong>Danh mục</strong><small>Sắp xếp sản phẩm</small></span><b>→</b></a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="content-card sales-empty-panel mt-4">
+        <div class="dashboard-empty-icon"><svg viewBox="0 0 24 24"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3" /></svg></div>
+        <div><span class="eyebrow">Bán hàng và doanh thu</span><h2>Chưa có dữ liệu giao dịch</h2><p>Biểu đồ doanh thu, đơn hàng gần đây và số lượng khách hàng sẽ xuất hiện khi module bán hàng được đưa vào sử dụng.</p></div>
+        <span class="coming-soon-badge">Đang hoàn thiện</span>
+    </section>
+}

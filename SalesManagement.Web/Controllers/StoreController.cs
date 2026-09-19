@@ -84,7 +84,7 @@ namespace SalesManagement.Web.Controllers
                 membership,
                 authentication.Properties?.IsPersistent ?? false);
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Dashboard", "Home");
         }
 
         [HttpGet]
@@ -136,7 +136,7 @@ namespace SalesManagement.Web.Controllers
                 membership,
                 authentication.Properties?.IsPersistent ?? false);
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Dashboard", "Home");
         }
 
         private bool TryGetUserId(out int userId)

@@ -1,4 +1,5 @@
 @{
+    Layout = "_AuthLayout";
     ViewData["Title"] = "Không có quyền truy cập";
 }
 
@@ -10,7 +11,7 @@
     <div class="access-denied-actions">
         @if (User.Identity?.IsAuthenticated == true)
         {
-            <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Về trang tổng quan</a>
+            <a class="btn btn-primary" asp-controller="Home" asp-action="Dashboard">Về trang tổng quan</a>
         }
         else
         {

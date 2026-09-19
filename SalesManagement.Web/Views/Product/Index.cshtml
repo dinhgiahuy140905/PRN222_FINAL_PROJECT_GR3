@@ -40,7 +40,7 @@
                                 <td class="fw-semibold">@product.SalePrice.ToString("N0") ₫</td>
                                 <td><strong class="@(isLowStock ? "text-danger" : null)">@product.Inventory.Quantity</strong><small class="d-block text-muted">Cảnh báo: @product.Inventory.ReorderLevel</small></td>
                                 <td>@if (isLowStock) { <span class="badge-soft badge-warning">Sắp hết</span> } else { <span class="badge-soft badge-success">Còn hàng</span> }</td>
-                                <td><div class="table-actions"><a asp-action="AdjustStock" asp-route-id="@product.Id">Điều chỉnh kho</a><a asp-action="Edit" asp-route-id="@product.Id">Sửa</a><form asp-action="Deactivate" asp-route-id="@product.Id" method="post" onsubmit="return confirm(''Ngừng kinh doanh sản phẩm này?'')"><button type="submit">Ngừng bán</button></form></div></td>
+                                <td><div class="table-actions"><a asp-action="AdjustStock" asp-route-id="@product.Id">Điều chỉnh kho</a><a asp-action="Edit" asp-route-id="@product.Id">Sửa</a><form asp-action="Deactivate" asp-route-id="@product.Id" method="post" onsubmit="return window.confirm(&quot;Ngừng kinh doanh sản phẩm này?&quot;)"><button type="submit">Ngừng bán</button></form></div></td>
                             </tr>
                         }
                     </tbody>

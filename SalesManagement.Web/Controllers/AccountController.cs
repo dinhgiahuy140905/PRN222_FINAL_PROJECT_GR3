@@ -32,7 +32,7 @@ namespace SalesManagement.Web.Controllers
         {
             if (User.Identity?.IsAuthenticated == true)
             {
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Dashboard", "Home");
             }
 
             ViewData["ReturnUrl"] = returnUrl;
@@ -83,7 +83,7 @@ namespace SalesManagement.Web.Controllers
         {
             if (User.Identity?.IsAuthenticated == true)
             {
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Dashboard", "Home");
             }
 
             return View();
@@ -129,7 +129,7 @@ namespace SalesManagement.Web.Controllers
             await _context.SaveChangesAsync();
 
             await _userSession.SignInAsync(user, membership, isPersistent: false);
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Dashboard", "Home");
         }
 
         [Authorize]
@@ -155,7 +155,7 @@ namespace SalesManagement.Web.Controllers
                 return Redirect(returnUrl);
             }
 
-            return RedirectToAction("Index", "Home")!;
+            return RedirectToAction("Dashboard", "Home")!;
         }
 
         private static string NormalizeEmail(string email)

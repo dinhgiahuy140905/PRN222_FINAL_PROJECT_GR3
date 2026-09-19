@@ -11,7 +11,7 @@
         <div class="col-lg-4"><div class="content-card"><h2>Thêm danh mục</h2><form asp-action="Create" method="post" class="mt-3"><div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div><div class="mb-3"><label asp-for="Name" class="form-label fw-semibold"></label><input asp-for="Name" class="form-control" placeholder="Ví dụ: Đồ uống" /><span asp-validation-for="Name" class="text-danger small"></span></div><button class="btn btn-primary w-100" type="submit">Thêm danh mục</button></form></div></div>
         <div class="col-lg-8"><div class="content-card"><div class="section-heading"><h2>Danh sách danh mục</h2><span class="order-total">@categories.Count danh mục</span></div>
             @if (categories.Count == 0) { <div class="module-empty compact"><span>◇</span><h2>Chưa có danh mục</h2></div> }
-            else { <div class="category-list">@foreach (var category in categories) { <div><span class="category-icon">◇</span><span><strong>@category.Name</strong><small>@category.Products.Count sản phẩm</small></span><form asp-action="Delete" asp-route-id="@category.Id" method="post" onsubmit="return confirm(''Xóa danh mục này?'')"><button type="submit" aria-label="Xóa @category.Name">Xóa</button></form></div> }</div> }
+            else { <div class="category-list">@foreach (var category in categories) { <div><span class="category-icon">◇</span><span><strong>@category.Name</strong><small>@category.Products.Count sản phẩm</small></span><form asp-action="Delete" asp-route-id="@category.Id" method="post" onsubmit="return window.confirm(&quot;Xóa danh mục này?&quot;)"><button type="submit" aria-label="Xóa @category.Name">Xóa</button></form></div> }</div> }
         </div></div>
     </div>
 </section>
