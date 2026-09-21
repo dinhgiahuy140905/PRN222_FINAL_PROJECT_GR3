@@ -1,6 +1,8 @@
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var currentStoreRole = User.FindFirst(SalesManagement.Web.Services.StoreClaimTypes.StoreRole)?.Value;
+    var accountType = User.FindFirst(SalesManagement.Web.Services.StoreClaimTypes.AccountType)?.Value;
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -60,6 +62,12 @@
                     <a class="nav-link @(currentController == "Store" ? "active" : null)" data-tooltip="Cửa hàng" asp-controller="Store" asp-action="Select">
                         <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9h18l-2-5H5L3 9Z" /><path d="M5 9v11h14V9M9 20v-6h6v6" /><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" /></svg></span><span class="nav-text">Cửa hàng</span>
                     </a>
+                    @if (currentStoreRole == "Owner")
+                    {
+                        <a class="nav-link @(currentController == "Staff" ? "active" : null)" data-tooltip="Nhân viên" asp-controller="Staff" asp-action="Index">
+                            <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" /><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 7h5M18.5 4.5v5" /></svg></span><span class="nav-text">Nhân viên</span>
+                        </a>
+                    }
                     <a class="nav-link @(currentController == "Settings" ? "active" : null)" data-tooltip="Cài đặt" asp-controller="Settings" asp-action="Index">
                         <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.09A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.09A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.36.25.57.65.6 1.09V10h1v4h-.09c-.44.03-.84.24-1.09.6-.2.12-.34.26-.42.4Z" /></svg></span><span class="nav-text">Cài đặt</span>
                     </a>
@@ -96,7 +104,7 @@
                                 @if (!string.IsNullOrWhiteSpace(avatarPath)) { <img src="@avatarPath" alt="" /> }
                                 else { @User.Identity.Name?.Substring(0, 1).ToUpper() }
                             </span>
-                            <span><strong>@User.Identity.Name</strong><small>@(User.FindFirst(SalesManagement.Web.Services.StoreClaimTypes.StoreRole)?.Value == "Owner" ? "Chủ sở hữu" : "Nhân viên")</small></span>
+                            <span><strong>@User.Identity.Name</strong><small>@(currentStoreRole == "Owner" ? "Chủ sở hữu" : currentStoreRole == "Staff" ? "Nhân viên" : accountType == "Owner" ? "Chủ cửa hàng" : "Chờ tham gia cửa hàng")</small></span>
                         </div>
                         <form asp-controller="Account" asp-action="Logout" method="post"><button class="logout-button" type="submit">Đăng xuất</button></form>
                     }

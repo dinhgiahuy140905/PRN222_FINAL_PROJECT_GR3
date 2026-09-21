@@ -25,7 +25,8 @@ namespace SalesManagement.Web.Services
             {
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Name, user.FullName),
-                new(ClaimTypes.Email, user.Email)
+                new(ClaimTypes.Email, user.Email),
+                new(StoreClaimTypes.AccountType, user.AccountType.ToString())
             };
 
             if (!string.IsNullOrWhiteSpace(user.AvatarPath))

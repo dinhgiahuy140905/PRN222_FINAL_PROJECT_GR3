@@ -6,8 +6,38 @@ namespace SalesManagement.Web.Models
     {
         public int? ActiveStoreId { get; set; }
 
+        public bool CanCreateStore { get; set; }
+
         public IReadOnlyList<StoreListItemViewModel> Stores { get; set; }
             = Array.Empty<StoreListItemViewModel>();
+    }
+
+    public class StaffManagementViewModel
+    {
+        public string StoreName { get; set; } = string.Empty;
+
+        public IReadOnlyList<StoreMemberListItemViewModel> Members { get; set; }
+            = Array.Empty<StoreMemberListItemViewModel>();
+
+        public StaffInviteViewModel Invite { get; set; } = new();
+    }
+
+    public class StoreMemberListItemViewModel
+    {
+        public int MembershipId { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string? AvatarPath { get; set; }
+        public StoreRole Role { get; set; }
+    }
+
+    public class StaffInviteViewModel
+    {
+        [Required(ErrorMessage = "Vui lòng nhập email nhân viên.")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+        [StringLength(255)]
+        [Display(Name = "Email nhân viên")]
+        public string Email { get; set; } = string.Empty;
     }
 
     public class StoreListItemViewModel

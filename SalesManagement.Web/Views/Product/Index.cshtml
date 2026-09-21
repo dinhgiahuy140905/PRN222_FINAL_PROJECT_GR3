@@ -1,50 +1,182 @@
-@model IReadOnlyList<Product>
+@model ProductIndexViewModel
 @{
     ViewData["Title"] = "Sản phẩm";
-    var search = ViewData["Search"] as string;
-    var lowStockOnly = ViewData["LowStockOnly"] as bool? == true;
+    var hasFilters = !string.IsNullOrWhiteSpace(Model.Search) || Model.CategoryId.HasValue || Model.Status != "all";
+    var firstPage = Math.Max(1, Model.Page - 2);
+    var lastPage = Math.Min(Model.PageCount, Model.Page + 2);
 }
 
-<section>
-    <div class="module-heading">
-        <div><span class="eyebrow">Kho hàng</span><h1>Sản phẩm</h1><p>Quản lý danh mục, giá bán và tồn kho của cửa hàng hiện tại.</p></div>
-        <div class="module-actions"><a class="btn btn-light-primary" asp-controller="Category" asp-action="Index">Danh mục</a><a class="btn btn-primary action-button" asp-action="Create"><span>＋</span> Thêm sản phẩm</a></div>
+<section class="product-index-page">
+    <div class="module-heading product-page-heading">
+        <div>
+            <span class="eyebrow">Kho hàng</span>
+            <h1>Sản phẩm</h1>
+            <p>Quản lý danh mục, giá bán và tồn kho của cửa hàng hiện tại.</p>
+        </div>
+        <div class="module-actions">
+            <a class="btn btn-light-primary" asp-controller="Category" asp-action="Index">Danh mục</a>
+            <a class="btn btn-primary action-button" asp-action="Create"><span>＋</span> Thêm sản phẩm</a>
+        </div>
     </div>
 
-    @if (TempData["Success"] is string success) { <div class="alert alert-success">@success</div> }
-    @if (TempData["Error"] is string error) { <div class="alert alert-danger">@error</div> }
+    @if (TempData["Success"] is string success)
+    {
+        <div class="alert alert-success">@success</div>
+    }
+    @if (TempData["Error"] is string error)
+    {
+        <div class="alert alert-danger">@error</div>
+    }
 
-    <div class="content-card">
-        <form class="product-toolbar" method="get">
-            <div class="search-field"><span>⌕</span><input class="form-control" type="search" name="search" value="@search" placeholder="Tìm theo tên, SKU hoặc mã vạch" /></div>
-            <label class="form-check low-stock-filter"><input class="form-check-input" type="checkbox" name="lowStockOnly" value="true" checked="@lowStockOnly" onchange="this.form.submit()" /><span class="form-check-label">Chỉ sản phẩm sắp hết</span></label>
-            <button class="btn btn-light-primary" type="submit">Tìm kiếm</button>
+    <div class="product-metrics" aria-label="Tổng quan sản phẩm">
+        <a class="product-metric @(Model.Status == "all" ? "active" : null)" asp-action="Index">
+            <span class="product-metric-icon total" aria-hidden="true">▦</span>
+            <span><strong>@Model.TotalProducts</strong><small>Sản phẩm</small></span>
+        </a>
+        <a class="product-metric @(Model.Status == "low-stock" ? "active" : null)" asp-action="Index" asp-route-status="low-stock">
+            <span class="product-metric-icon warning" aria-hidden="true">!</span>
+            <span><strong>@Model.LowStockProducts</strong><small>Sắp hết</small></span>
+        </a>
+        <a class="product-metric @(Model.Status == "out-of-stock" ? "active" : null)" asp-action="Index" asp-route-status="out-of-stock">
+            <span class="product-metric-icon danger" aria-hidden="true">×</span>
+            <span><strong>@Model.OutOfStockProducts</strong><small>Hết hàng</small></span>
+        </a>
+        <a class="product-metric @(Model.Status == "inactive" ? "active" : null)" asp-action="Index" asp-route-status="inactive">
+            <span class="product-metric-icon muted" aria-hidden="true">—</span>
+            <span><strong>@Model.InactiveProducts</strong><small>Ngừng bán</small></span>
+        </a>
+    </div>
+
+    <div class="content-card product-list-card">
+        <form class="product-filter-bar" method="get">
+            <div class="search-field product-search-field">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg>
+                <input class="form-control" type="search" name="search" value="@Model.Search" placeholder="Tìm tên, SKU, mã vạch..." aria-label="Tìm sản phẩm" />
+            </div>
+            <select class="form-select" asp-for="CategoryId" asp-items="Model.Categories" aria-label="Lọc theo danh mục">
+                <option value="">Tất cả danh mục</option>
+            </select>
+            <select class="form-select" asp-for="Status" aria-label="Lọc theo trạng thái">
+                <option value="all">Tất cả trạng thái</option>
+                <option value="in-stock">Còn hàng</option>
+                <option value="low-stock">Sắp hết</option>
+                <option value="out-of-stock">Hết hàng</option>
+                <option value="inactive">Ngừng bán</option>
+            </select>
+            <button class="btn btn-light-primary" type="submit">Lọc</button>
+            @if (hasFilters)
+            {
+                <a class="product-filter-reset" asp-action="Index" aria-label="Xóa bộ lọc">Xóa lọc</a>
+            }
         </form>
 
-        @if (Model.Count == 0)
+        @if (Model.Products.Count == 0)
         {
-            <div class="module-empty"><span>▤</span><h2>Chưa có sản phẩm phù hợp</h2><p>Thêm sản phẩm mới hoặc thay đổi điều kiện tìm kiếm.</p><a class="btn btn-primary" asp-action="Create">Thêm sản phẩm</a></div>
+            <div class="module-empty product-empty-state">
+                <span>▤</span>
+                <h2>@(hasFilters ? "Không tìm thấy sản phẩm" : "Chưa có sản phẩm")</h2>
+                <p>@(hasFilters ? "Thử thay đổi từ khóa hoặc bộ lọc đang chọn." : "Thêm sản phẩm đầu tiên để bắt đầu quản lý kho.")</p>
+                @if (hasFilters)
+                {
+                    <a class="btn btn-light-primary" asp-action="Index">Xóa bộ lọc</a>
+                }
+                else
+                {
+                    <a class="btn btn-primary" asp-action="Create">Thêm sản phẩm</a>
+                }
+            </div>
         }
         else
         {
-            <div class="table-responsive">
-                <table class="table product-table">
-                    <thead><tr><th>Sản phẩm</th><th>Danh mục</th><th>Giá bán</th><th>Tồn kho</th><th>Trạng thái</th><th></th></tr></thead>
+            <div class="table-responsive product-table-wrap">
+                <table class="table product-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Danh mục</th>
+                            <th>Giá bán</th>
+                            <th>Tồn kho</th>
+                            <th>Trạng thái</th>
+                            <th><span class="visually-hidden">Thao tác</span></th>
+                        </tr>
+                    </thead>
                     <tbody>
-                        @foreach (var product in Model)
+                        @foreach (var product in Model.Products)
                         {
-                            var isLowStock = product.Inventory.Quantity <= product.Inventory.ReorderLevel;
-                            <tr>
-                                <td><div class="product-name-cell"><span class="product-thumb">▤</span><span><strong>@product.Name</strong><small>SKU: @product.Sku · @product.Unit</small></span></div></td>
-                                <td>@(product.Category?.Name ?? "Chưa phân loại")</td>
-                                <td class="fw-semibold">@product.SalePrice.ToString("N0") ₫</td>
-                                <td><strong class="@(isLowStock ? "text-danger" : null)">@product.Inventory.Quantity</strong><small class="d-block text-muted">Cảnh báo: @product.Inventory.ReorderLevel</small></td>
-                                <td>@if (isLowStock) { <span class="badge-soft badge-warning">Sắp hết</span> } else { <span class="badge-soft badge-success">Còn hàng</span> }</td>
-                                <td><div class="table-actions"><a asp-action="AdjustStock" asp-route-id="@product.Id">Điều chỉnh kho</a><a asp-action="Edit" asp-route-id="@product.Id">Sửa</a><form asp-action="Deactivate" asp-route-id="@product.Id" method="post" onsubmit="return window.confirm(&quot;Ngừng kinh doanh sản phẩm này?&quot;)"><button type="submit">Ngừng bán</button></form></div></td>
+                            var quantity = product.Inventory.Quantity;
+                            var isOutOfStock = product.IsActive && quantity <= 0;
+                            var isLowStock = product.IsActive && quantity > 0 && quantity <= product.Inventory.ReorderLevel;
+                            var statusLabel = !product.IsActive ? "Ngừng bán" : isOutOfStock ? "Hết hàng" : isLowStock ? "Sắp hết" : "Còn hàng";
+                            var statusClass = !product.IsActive ? "neutral" : isOutOfStock ? "danger" : isLowStock ? "warning" : "success";
+                            var initial = string.IsNullOrWhiteSpace(product.Name) ? "SP" : product.Name[..1].ToUpperInvariant();
+                            <tr class="@(!product.IsActive ? "product-row-inactive" : null)">
+                                <td>
+                                    <div class="product-name-cell">
+                                        <span class="product-thumb" aria-hidden="true">@initial</span>
+                                        <span>
+                                            <strong>@product.Name</strong>
+                                            <small>@product.Sku · @product.Unit</small>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td><span class="product-category">@(product.Category?.Name ?? "Chưa phân loại")</span></td>
+                                <td class="product-price">@product.SalePrice.ToString("N0") ₫</td>
+                                <td>
+                                    <span class="product-stock @(isOutOfStock ? "danger" : isLowStock ? "warning" : null)">@quantity</span>
+                                    <small class="product-stock-unit">@product.Unit</small>
+                                </td>
+                                <td><span class="product-status @statusClass"><i></i>@statusLabel</span></td>
+                                <td class="product-action-cell">
+                                    <div class="dropdown">
+                                        <button class="product-more-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Thao tác với @product.Name">•••</button>
+                                        <div class="dropdown-menu dropdown-menu-end product-action-menu">
+                                            <a class="dropdown-item" asp-action="Edit" asp-route-id="@product.Id">Chỉnh sửa</a>
+                                            @if (product.IsActive)
+                                            {
+                                                <a class="dropdown-item" asp-action="AdjustStock" asp-route-id="@product.Id">Điều chỉnh kho</a>
+                                                <div class="dropdown-divider"></div>
+                                                <form asp-action="Deactivate" asp-route-id="@product.Id" method="post" onsubmit="return window.confirm(&quot;Ngừng kinh doanh sản phẩm này?&quot;)">
+                                                    <button class="dropdown-item text-danger" type="submit">Ngừng bán</button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form asp-action="Activate" asp-route-id="@product.Id" method="post">
+                                                    <button class="dropdown-item text-primary" type="submit">Mở bán lại</button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                         }
                     </tbody>
                 </table>
+            </div>
+
+            <div class="product-list-footer">
+                <span>Hiển thị @Model.FirstItem–@Model.LastItem / @Model.FilteredCount</span>
+                @if (Model.PageCount > 1)
+                {
+                    <nav class="product-pagination" aria-label="Phân trang sản phẩm">
+                        <a class="@(Model.Page == 1 ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-categoryId="@Model.CategoryId" asp-route-status="@Model.Status" asp-route-page="@(Model.Page - 1)" aria-label="Trang trước">‹</a>
+                        @if (firstPage > 1)
+                        {
+                            <a asp-action="Index" asp-route-search="@Model.Search" asp-route-categoryId="@Model.CategoryId" asp-route-status="@Model.Status" asp-route-page="1">1</a>
+                            @if (firstPage > 2) { <span>…</span> }
+                        }
+                        @for (var pageNumber = firstPage; pageNumber <= lastPage; pageNumber++)
+                        {
+                            <a class="@(pageNumber == Model.Page ? "active" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-categoryId="@Model.CategoryId" asp-route-status="@Model.Status" asp-route-page="@pageNumber" aria-current="@(pageNumber == Model.Page ? "page" : null)">@pageNumber</a>
+                        }
+                        @if (lastPage < Model.PageCount)
+                        {
+                            @if (lastPage < Model.PageCount - 1) { <span>…</span> }
+                            <a asp-action="Index" asp-route-search="@Model.Search" asp-route-categoryId="@Model.CategoryId" asp-route-status="@Model.Status" asp-route-page="@Model.PageCount">@Model.PageCount</a>
+                        }
+                        <a class="@(Model.Page == Model.PageCount ? "disabled" : null)" asp-action="Index" asp-route-search="@Model.Search" asp-route-categoryId="@Model.CategoryId" asp-route-status="@Model.Status" asp-route-page="@(Model.Page + 1)" aria-label="Trang sau">›</a>
+                    </nav>
+                }
             </div>
         }
     </div>

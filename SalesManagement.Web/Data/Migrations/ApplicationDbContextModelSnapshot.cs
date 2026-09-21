@@ -408,6 +408,11 @@ namespace SalesManagement.Web.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AccountType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<string>("AvatarPath")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");

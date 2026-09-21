@@ -14,6 +14,8 @@
 
         public string PasswordHash { get; set; } = string.Empty;
 
+        public AccountType AccountType { get; set; } = AccountType.Owner;
+
         public int? DefaultStoreId { get; set; }
 
         public DateTime? PasswordChangedAt { get; set; }
@@ -26,5 +28,11 @@
             = new List<InventoryTransaction>();
 
         public ICollection<Order> CreatedOrders { get; set; } = new List<Order>();
+    }
+
+    public enum AccountType
+    {
+        Staff = 0,
+        Owner = 1
     }
 }

@@ -78,7 +78,9 @@ namespace SalesManagement.Web.Controllers
             await _userSession.SignInAsync(user, membership, model.RememberMe);
             if (membership is null)
             {
-                return RedirectToAction("Create", "Store");
+                return user.AccountType == AccountType.Owner
+                    ? RedirectToAction("Create", "Store", new { firstStore = true })
+                    : RedirectToAction("Select", "Store");
             }
 
             return RedirectToLocal(returnUrl);
@@ -116,27 +118,18 @@ namespace SalesManagement.Web.Controllers
             var user = new User
             {
                 FullName = model.FullName.Trim(),
-                Email = email
+                Email = email,
+                AccountType = model.AccountType!.Value
             };
             user.PasswordHash = _passwordHasher.HashPassword(user, model.Password);
 
-            var store = new Store
-            {
-                Name = model.StoreName.Trim()
-            };
-
-            var membership = new StoreMember
-            {
-                User = user,
-                Store = store,
-                Role = StoreRole.Owner
-            };
-
-            _context.StoreMembers.Add(membership);
+            _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            await _userSession.SignInAsync(user, membership, isPersistent: false);
-            return RedirectToAction("Dashboard", "Home");
+            await _userSession.SignInAsync(user, membership: null, isPersistent: false);
+            return user.AccountType == AccountType.Owner
+                ? RedirectToAction("Create", "Store", new { firstStore = true })
+                : RedirectToAction("Select", "Store");
         }
 
         [Authorize]

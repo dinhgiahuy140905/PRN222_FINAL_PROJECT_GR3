@@ -46,10 +46,15 @@ namespace SalesManagement.Web.Controllers
 
             var activeStoreValue = User.FindFirstValue(StoreClaimTypes.StoreId);
             int? activeStoreId = int.TryParse(activeStoreValue, out var id) ? id : null;
+            var accountType = await _context.Users
+                .Where(user => user.Id == userId)
+                .Select(user => user.AccountType)
+                .SingleAsync();
 
             return View(new StoreSelectionViewModel
             {
                 ActiveStoreId = activeStoreId,
+                CanCreateStore = accountType == AccountType.Owner,
                 Stores = stores
             });
         }
@@ -78,6 +83,9 @@ namespace SalesManagement.Web.Controllers
                 return Challenge();
             }
 
+            user.DefaultStoreId = membership.StoreId;
+            await _context.SaveChangesAsync();
+
             var authentication = await HttpContext.AuthenticateAsync();
             await _userSession.SignInAsync(
                 user,
@@ -88,20 +96,30 @@ namespace SalesManagement.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create(bool firstStore = false)
         {
+            if (!TryGetUserId(out var userId))
+            {
+                return Challenge();
+            }
+
+            var accountType = await _context.Users
+                .Where(user => user.Id == userId)
+                .Select(user => user.AccountType)
+                .SingleOrDefaultAsync();
+            if (accountType != AccountType.Owner)
+            {
+                return Forbid();
+            }
+
+            ViewData["FirstStore"] = firstStore;
             return View(new CreateStoreViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateStoreViewModel model)
+        public async Task<IActionResult> Create(CreateStoreViewModel model, bool firstStore = false)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
             if (!TryGetUserId(out var userId))
             {
                 return Challenge();
@@ -111,6 +129,17 @@ namespace SalesManagement.Web.Controllers
             if (user is null)
             {
                 return Challenge();
+            }
+
+            if (user.AccountType != AccountType.Owner)
+            {
+                return Forbid();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewData["FirstStore"] = firstStore;
+                return View(model);
             }
 
             var store = new Store
@@ -128,6 +157,9 @@ namespace SalesManagement.Web.Controllers
             };
 
             _context.StoreMembers.Add(membership);
+            await _context.SaveChangesAsync();
+
+            user.DefaultStoreId = store.Id;
             await _context.SaveChangesAsync();
 
             var authentication = await HttpContext.AuthenticateAsync();

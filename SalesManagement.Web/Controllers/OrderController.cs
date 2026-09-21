@@ -272,10 +272,11 @@ namespace SalesManagement.Web.Controllers
             }
 
             order.Status = OrderStatus.Completed;
+            order.PaymentStatus = PaymentStatus.Paid;
             order.CompletedAt = DateTime.Now;
             order.UpdatedAt = DateTime.Now;
             await _context.SaveChangesAsync();
-            TempData["Success"] = $"Đơn {order.Code} đã hoàn thành.";
+            TempData["Success"] = $"Đơn {order.Code} đã hoàn thành và được đánh dấu đã thanh toán.";
             return RedirectToAction(nameof(Details), new { id });
         }
 

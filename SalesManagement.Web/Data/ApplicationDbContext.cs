@@ -44,6 +44,11 @@ namespace SalesManagement.Web.Data
 
                 entity.Property(user => user.PasswordHash)
                     .IsRequired();
+
+                entity.Property(user => user.AccountType)
+                    .HasConversion<string>()
+                    .HasMaxLength(20)
+                    .IsRequired();
             });
 
             modelBuilder.Entity<Store>(entity =>

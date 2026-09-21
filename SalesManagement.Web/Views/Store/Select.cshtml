@@ -6,16 +6,28 @@
 <section class="store-page">
     <div class="store-page-heading">
         <div><span class="eyebrow">Không gian làm việc</span><h1>Cửa hàng của bạn</h1><p>Chọn cửa hàng để xem và quản lý dữ liệu tương ứng.</p></div>
-        <a class="btn btn-primary action-button" asp-action="Create"><span aria-hidden="true">＋</span> Tạo cửa hàng</a>
+        @if (Model.CanCreateStore)
+        {
+            <a class="btn btn-primary action-button" asp-action="Create"><span aria-hidden="true">＋</span> Tạo cửa hàng</a>
+        }
     </div>
 
     @if (Model.Stores.Count == 0)
     {
         <div class="content-card store-empty">
-            <div class="store-empty-icon">▦</div>
-            <h2>Bạn chưa có cửa hàng</h2>
-            <p>Tạo cửa hàng đầu tiên để bắt đầu quản lý sản phẩm và đơn hàng.</p>
-            <a class="btn btn-primary" asp-action="Create">Tạo cửa hàng đầu tiên</a>
+            <div class="store-empty-icon">@(Model.CanCreateStore ? "▦" : "♙")</div>
+            @if (Model.CanCreateStore)
+            {
+                <h2>Bạn chưa có cửa hàng</h2>
+                <p>Tạo cửa hàng đầu tiên để bắt đầu quản lý sản phẩm và đơn hàng.</p>
+                <a class="btn btn-primary" asp-action="Create" asp-route-firstStore="true">Tạo cửa hàng đầu tiên</a>
+            }
+            else
+            {
+                <h2>Đang chờ tham gia cửa hàng</h2>
+                <p>Hãy gửi email đăng ký của bạn cho Owner. Khi được thêm vào cửa hàng, bạn có thể đăng nhập lại hoặc tải lại trang này.</p>
+                <a class="btn btn-light-primary" asp-action="Select">Kiểm tra lại</a>
+            }
         </div>
     }
     else

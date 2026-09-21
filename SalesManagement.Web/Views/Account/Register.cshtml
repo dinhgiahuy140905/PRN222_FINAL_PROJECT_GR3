@@ -1,48 +1,107 @@
 @model RegisterViewModel
-@{ Layout = "_AuthLayout"; ViewData["Title"] = "Đăng ký"; }
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Đăng ký";
+    var basicFields = new[] { nameof(Model.FullName), nameof(Model.Email), nameof(Model.Password), nameof(Model.ConfirmPassword) };
+    var hasBasicErrors = basicFields.Any(field => ViewData.ModelState[field]?.Errors.Count > 0);
+    var initialStep = !hasBasicErrors && ViewData.ModelState[nameof(Model.AccountType)]?.Errors.Count > 0 ? 2 : 1;
+}
 <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-7">
-        <div class="content-card">
+    <div class="col-lg-8 col-xl-7">
+        <div class="content-card register-card" data-register-card data-initial-step="@initialStep">
             <div class="text-center mb-4">
                 <img class="auth-card-logo mb-3" src="~/images/saleshub-mark.svg" alt="SalesHub" />
-                <h1 class="h3 fw-bold">Tạo tài khoản mới</h1>
-                <p class="text-muted mb-0">Thiết lập tài khoản chủ sở hữu và cửa hàng đầu tiên</p>
+                <h1 class="h3 fw-bold">Tạo tài khoản SalesHub</h1>
+                <p class="text-muted mb-0">Bắt đầu với thông tin cá nhân, sau đó chọn cách bạn sử dụng SalesHub.</p>
             </div>
-            <form asp-action="Register" method="post">
+
+            <div class="register-progress" aria-label="Tiến trình đăng ký">
+                <div class="active" data-progress-step="1"><span>1</span><small>Thông tin</small></div>
+                <i></i>
+                <div data-progress-step="2"><span>2</span><small>Loại tài khoản</small></div>
+            </div>
+
+            <form asp-action="Register" method="post" id="registerForm">
                 <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="FullName" class="form-label fw-semibold"></label>
-                        <input asp-for="FullName" class="form-control" autocomplete="name" placeholder="Nguyễn Văn A" />
-                        <span asp-validation-for="FullName" class="text-danger small"></span>
+
+                <section class="register-step" data-register-step="1">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="FullName" class="form-label fw-semibold"></label>
+                            <input asp-for="FullName" class="form-control" autocomplete="name" placeholder="Nguyễn Văn A" />
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Email" class="form-label fw-semibold"></label>
+                            <input asp-for="Email" class="form-control" autocomplete="email" placeholder="you@example.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Email" class="form-label fw-semibold"></label>
-                        <input asp-for="Email" class="form-control" autocomplete="email" placeholder="you@example.com" />
-                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Password" class="form-label fw-semibold"></label>
+                            <input asp-for="Password" class="form-control" autocomplete="new-password" placeholder="Tối thiểu 6 ký tự" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ConfirmPassword" class="form-label fw-semibold"></label>
+                            <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" placeholder="Nhập lại mật khẩu" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
                     </div>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="StoreName" class="form-label fw-semibold"></label>
-                    <input asp-for="StoreName" class="form-control" autocomplete="organization" placeholder="Ví dụ: Cửa hàng Minh Anh" />
-                    <span asp-validation-for="StoreName" class="text-danger small"></span>
-                    <div class="form-text">Bạn sẽ được gán quyền chủ sở hữu của cửa hàng này.</div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Password" class="form-label fw-semibold"></label>
-                        <input asp-for="Password" class="form-control" autocomplete="new-password" placeholder="Tối thiểu 6 ký tự" />
-                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    <button class="btn btn-primary w-100 py-2 mt-2" type="button" data-next-step>Tiếp tục</button>
+                </section>
+
+                <section class="register-step" data-register-step="2" hidden>
+                    <div class="register-role-heading">
+                        <span class="eyebrow">Chọn loại tài khoản</span>
+                        <h2>Bạn sử dụng SalesHub với vai trò nào?</h2>
+                        <p>Lựa chọn này quyết định khả năng tự tạo cửa hàng. Quyền trong từng cửa hàng vẫn được quản lý riêng.</p>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="ConfirmPassword" class="form-label fw-semibold"></label>
-                        <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" placeholder="Nhập lại mật khẩu" />
-                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    <div class="register-role-grid">
+                        <label class="register-role-card">
+                            <input asp-for="AccountType" type="radio" value="Owner" />
+                            <span class="register-role-icon owner">▦</span>
+                            <span><strong>Chủ cửa hàng</strong><small>Tôi muốn tạo và quản lý cửa hàng của mình.</small></span>
+                            <i>✓</i>
+                        </label>
+                        <label class="register-role-card">
+                            <input asp-for="AccountType" type="radio" value="Staff" />
+                            <span class="register-role-icon staff">♙</span>
+                            <span><strong>Nhân viên</strong><small>Tôi làm việc tại một cửa hàng.</small></span>
+                            <i>✓</i>
+                        </label>
                     </div>
-                </div>
-                <button type="submit" class="btn btn-primary w-100 py-2 mt-2">Tạo tài khoản và cửa hàng</button>
+                    <span asp-validation-for="AccountType" class="text-danger small d-block mt-2"></span>
+                    <div class="register-step-actions">
+                        <button class="btn btn-light-primary" type="button" data-previous-step>Quay lại</button>
+                        <button class="btn btn-primary flex-grow-1" type="submit">Tạo tài khoản</button>
+                    </div>
+                </section>
             </form>
             <p class="text-center text-muted small mt-4 mb-0">Đã có tài khoản? <a asp-action="Login" class="text-primary fw-semibold">Đăng nhập</a></p>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const card = document.querySelector("[data-register-card]");
+            const form = document.getElementById("registerForm");
+            if (!card || !form) return;
+            const showStep = step => {
+                card.querySelectorAll("[data-register-step]").forEach(section => section.hidden = section.dataset.registerStep !== String(step));
+                card.querySelectorAll("[data-progress-step]").forEach(item => item.classList.toggle("active", Number(item.dataset.progressStep) <= step));
+            };
+            card.querySelector("[data-next-step]")?.addEventListener("click", () => {
+                const fields = card.querySelectorAll('[data-register-step="1"] input');
+                const invalid = Array.from(fields).find(field => !field.checkValidity());
+                if (invalid) { invalid.reportValidity(); return; }
+                showStep(2);
+            });
+            card.querySelector("[data-previous-step]")?.addEventListener("click", () => showStep(1));
+            showStep(Number(card.dataset.initialStep || 1));
+        })();
+    </script>
+}

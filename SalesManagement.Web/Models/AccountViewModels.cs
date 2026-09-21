@@ -15,10 +15,9 @@ namespace SalesManagement.Web.Models
         [Display(Name = "Email")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Vui lòng nhập tên cửa hàng.")]
-        [StringLength(150, ErrorMessage = "Tên cửa hàng không được vượt quá 150 ký tự.")]
-        [Display(Name = "Tên cửa hàng")]
-        public string StoreName { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Vui lòng chọn loại tài khoản.")]
+        [Display(Name = "Bạn sử dụng SalesHub với vai trò nào?")]
+        public AccountType? AccountType { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]
         [StringLength(100, MinimumLength = 6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự.")]

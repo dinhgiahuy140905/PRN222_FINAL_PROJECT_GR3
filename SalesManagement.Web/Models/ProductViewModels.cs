@@ -3,6 +3,25 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace SalesManagement.Web.Models
 {
+    public class ProductIndexViewModel
+    {
+        public IReadOnlyList<Product> Products { get; set; } = Array.Empty<Product>();
+        public IReadOnlyList<SelectListItem> Categories { get; set; } = Array.Empty<SelectListItem>();
+        public string? Search { get; set; }
+        public int? CategoryId { get; set; }
+        public string Status { get; set; } = "all";
+        public int TotalProducts { get; set; }
+        public int LowStockProducts { get; set; }
+        public int OutOfStockProducts { get; set; }
+        public int InactiveProducts { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
+        public int FilteredCount { get; set; }
+        public int PageCount => Math.Max(1, (int)Math.Ceiling(FilteredCount / (double)PageSize));
+        public int FirstItem => FilteredCount == 0 ? 0 : ((Page - 1) * PageSize) + 1;
+        public int LastItem => Math.Min(Page * PageSize, FilteredCount);
+    }
+
     public class ProductFormViewModel
     {
         public int? Id { get; set; }

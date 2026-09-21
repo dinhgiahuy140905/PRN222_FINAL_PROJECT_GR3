@@ -23,7 +23,12 @@ namespace SalesManagement.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? search, bool lowStockOnly = false)
+        public async Task<IActionResult> Index(
+            string? search,
+            int? categoryId,
+            string status = "all",
+            int page = 1,
+            bool lowStockOnly = false)
         {
             var storeId = await GetStoreIdAsync();
             if (storeId is null)
@@ -31,11 +36,46 @@ namespace SalesManagement.Web.Controllers
                 return RedirectToAction("Select", "Store");
             }
 
-            var query = _context.Products
+            const int pageSize = 20;
+            page = Math.Max(1, page);
+            status = lowStockOnly
+                ? "low-stock"
+                : (status ?? "all").Trim().ToLowerInvariant();
+            if (status is not ("all" or "in-stock" or "low-stock" or "out-of-stock" or "inactive"))
+            {
+                status = "all";
+            }
+
+            var storeProducts = _context.Products
                 .AsNoTracking()
                 .Include(product => product.Category)
                 .Include(product => product.Inventory)
-                .Where(product => product.StoreId == storeId && product.IsActive);
+                .Where(product => product.StoreId == storeId);
+
+            var model = new ProductIndexViewModel
+            {
+                Search = search,
+                CategoryId = categoryId,
+                Status = status,
+                Page = page,
+                PageSize = pageSize,
+                TotalProducts = await storeProducts.CountAsync(),
+                LowStockProducts = await storeProducts.CountAsync(product =>
+                    product.IsActive &&
+                    product.Inventory.Quantity > 0 &&
+                    product.Inventory.Quantity <= product.Inventory.ReorderLevel),
+                OutOfStockProducts = await storeProducts.CountAsync(product =>
+                    product.IsActive && product.Inventory.Quantity <= 0),
+                InactiveProducts = await storeProducts.CountAsync(product => !product.IsActive),
+                Categories = await _context.Categories
+                    .AsNoTracking()
+                    .Where(category => category.StoreId == storeId)
+                    .OrderBy(category => category.Name)
+                    .Select(category => new SelectListItem(category.Name, category.Id.ToString()))
+                    .ToListAsync()
+            };
+
+            var query = storeProducts.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -46,14 +86,35 @@ namespace SalesManagement.Web.Controllers
                     (product.Barcode != null && product.Barcode.Contains(term)));
             }
 
-            if (lowStockOnly)
+            if (categoryId.HasValue)
             {
-                query = query.Where(product => product.Inventory.Quantity <= product.Inventory.ReorderLevel);
+                query = query.Where(product => product.CategoryId == categoryId.Value);
             }
 
-            ViewData["Search"] = search;
-            ViewData["LowStockOnly"] = lowStockOnly;
-            return View(await query.OrderBy(product => product.Name).ToListAsync());
+            query = status switch
+            {
+                "in-stock" => query.Where(product =>
+                    product.IsActive && product.Inventory.Quantity > product.Inventory.ReorderLevel),
+                "low-stock" => query.Where(product =>
+                    product.IsActive &&
+                    product.Inventory.Quantity > 0 &&
+                    product.Inventory.Quantity <= product.Inventory.ReorderLevel),
+                "out-of-stock" => query.Where(product =>
+                    product.IsActive && product.Inventory.Quantity <= 0),
+                "inactive" => query.Where(product => !product.IsActive),
+                _ => query
+            };
+
+            model.FilteredCount = await query.CountAsync();
+            model.Page = Math.Min(page, model.PageCount);
+            model.Products = await query
+                .OrderByDescending(product => product.IsActive)
+                .ThenBy(product => product.Name)
+                .Skip((model.Page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return View(model);
         }
 
         [HttpGet]
@@ -306,6 +367,30 @@ namespace SalesManagement.Web.Controllers
             await _context.SaveChangesAsync();
             TempData["Success"] = "Đã ngừng kinh doanh sản phẩm.";
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Activate(int id)
+        {
+            var storeId = await GetStoreIdAsync();
+            if (storeId is null)
+            {
+                return RedirectToAction("Select", "Store");
+            }
+
+            var product = await _context.Products
+                .SingleOrDefaultAsync(item => item.Id == id && item.StoreId == storeId);
+            if (product is null)
+            {
+                return NotFound();
+            }
+
+            product.IsActive = true;
+            product.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Đã mở bán lại sản phẩm.";
+            return RedirectToAction(nameof(Index), new { status = "inactive" });
         }
 
         private async Task<int?> GetStoreIdAsync()

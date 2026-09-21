@@ -1,0 +1,53 @@
+@model StaffManagementViewModel
+@{
+    ViewData["Title"] = "Nhân viên";
+    var ownerCount = Model.Members.Count(member => member.Role == StoreRole.Owner);
+    var staffCount = Model.Members.Count(member => member.Role == StoreRole.Staff);
+}
+
+<section class="staff-page">
+    <div class="module-heading">
+        <div><span class="eyebrow">Đội ngũ</span><h1>Nhân viên</h1><p>Quản lý người có quyền truy cập vào @Model.StoreName.</p></div>
+        <span class="staff-count">@staffCount nhân viên · @ownerCount owner</span>
+    </div>
+
+    @if (TempData["Success"] is string success) { <div class="alert alert-success">@success</div> }
+
+    <div class="staff-layout">
+        <div class="content-card staff-invite-card">
+            <span class="eyebrow">Thêm nhân viên</span>
+            <h2>Thêm bằng email</h2>
+            <p>Nhân viên cần đăng ký tài khoản Staff trước. Sau khi được thêm, họ có thể chọn cửa hàng này khi đăng nhập.</p>
+            <form asp-action="Invite" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+                <label asp-for="Invite.Email" class="form-label fw-semibold"></label>
+                <input asp-for="Invite.Email" class="form-control" placeholder="nhanvien@example.com" autocomplete="email" />
+                <span asp-validation-for="Invite.Email" class="text-danger small"></span>
+                <button class="btn btn-primary w-100 mt-3" type="submit">Thêm vào cửa hàng</button>
+            </form>
+        </div>
+
+        <div class="content-card staff-list-card">
+            <div class="section-heading"><h2>Thành viên cửa hàng</h2><span>@Model.Members.Count người</span></div>
+            <div class="staff-list">
+                @foreach (var member in Model.Members)
+                {
+                    <div class="staff-list-item">
+                        <span class="staff-avatar">
+                            @if (!string.IsNullOrWhiteSpace(member.AvatarPath)) { <img src="@member.AvatarPath" alt="" /> }
+                            else { @member.FullName[..1].ToUpperInvariant() }
+                        </span>
+                        <span class="staff-identity"><strong>@member.FullName</strong><small>@member.Email</small></span>
+                        <span class="staff-role @(member.Role == StoreRole.Owner ? "owner" : null)">@(member.Role == StoreRole.Owner ? "Owner" : "Staff")</span>
+                        @if (member.Role == StoreRole.Staff)
+                        {
+                            <form asp-action="Remove" asp-route-id="@member.MembershipId" method="post" onsubmit="return window.confirm(&quot;Gỡ nhân viên này khỏi cửa hàng?&quot;)">
+                                <button class="staff-remove" type="submit">Gỡ</button>
+                            </form>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

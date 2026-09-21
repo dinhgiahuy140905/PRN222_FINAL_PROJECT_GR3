@@ -24,7 +24,7 @@
             @if (Model.Status == OrderStatus.Confirmed)
             {
                 <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" onsubmit="return window.confirm(&quot;Hủy đơn và hoàn lại toàn bộ tồn kho?&quot;)"><button class="btn btn-outline-danger" type="submit">Hủy đơn</button></form>
-                <form asp-action="Complete" asp-route-id="@Model.Id" method="post"><button class="btn btn-primary" type="submit">Đánh dấu hoàn thành</button></form>
+                <form asp-action="Complete" asp-route-id="@Model.Id" method="post" onsubmit="return window.confirm(&quot;Hoàn thành đơn và đánh dấu đã thanh toán?&quot;)"><button class="btn btn-primary" type="submit">Hoàn thành &amp; thanh toán</button></form>
             }
         </div>
     </div>
