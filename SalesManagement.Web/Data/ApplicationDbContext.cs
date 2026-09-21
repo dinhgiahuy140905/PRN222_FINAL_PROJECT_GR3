@@ -19,6 +19,8 @@ namespace SalesManagement.Web.Data
         public DbSet<Product> Products => Set<Product>();
         public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
         public DbSet<InventoryTransaction> InventoryTransactions => Set<InventoryTransaction>();
+        public DbSet<Order> Orders => Set<Order>();
+        public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,6 +35,9 @@ namespace SalesManagement.Web.Data
                 entity.Property(user => user.Email)
                     .HasMaxLength(255)
                     .IsRequired();
+
+                entity.Property(user => user.Phone).HasMaxLength(20);
+                entity.Property(user => user.AvatarPath).HasMaxLength(300);
 
                 entity.HasIndex(user => user.Email)
                     .IsUnique();
@@ -52,6 +57,11 @@ namespace SalesManagement.Web.Data
 
                 entity.Property(store => store.Phone)
                     .HasMaxLength(20);
+
+                entity.Property(store => store.LogoPath).HasMaxLength(300);
+                entity.Property(store => store.CurrencyCode).HasMaxLength(10).IsRequired();
+                entity.Property(store => store.InvoiceFooter).HasMaxLength(300);
+                entity.Property(store => store.InvoiceThankYou).HasMaxLength(200).IsRequired();
             });
 
             modelBuilder.Entity<StoreMember>(entity =>
@@ -137,6 +147,51 @@ namespace SalesManagement.Web.Data
                     .WithMany(user => user.InventoryTransactions)
                     .HasForeignKey(transaction => transaction.UserId)
                     .OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(transaction => transaction.Order)
+                    .WithMany(order => order.InventoryTransactions)
+                    .HasForeignKey(transaction => transaction.OrderId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.Property(order => order.Code).HasMaxLength(30).IsRequired();
+                entity.Property(order => order.CustomerName).HasMaxLength(100).IsRequired();
+                entity.Property(order => order.CustomerPhone).HasMaxLength(20);
+                entity.Property(order => order.Note).HasMaxLength(500);
+                entity.Property(order => order.Status).HasConversion<string>().HasMaxLength(20);
+                entity.Property(order => order.PaymentStatus).HasConversion<string>().HasMaxLength(20);
+                entity.Property(order => order.PaymentMethod).HasConversion<string>().HasMaxLength(30);
+                entity.Property(order => order.Subtotal).HasPrecision(18, 2);
+                entity.Property(order => order.Discount).HasPrecision(18, 2);
+                entity.Property(order => order.Total).HasPrecision(18, 2);
+                entity.HasIndex(order => new { order.StoreId, order.Code }).IsUnique();
+                entity.HasIndex(order => new { order.StoreId, order.CreatedAt });
+                entity.HasOne(order => order.Store)
+                    .WithMany(store => store.Orders)
+                    .HasForeignKey(order => order.StoreId)
+                    .OnDelete(DeleteBehavior.NoAction);
+                entity.HasOne(order => order.CreatedByUser)
+                    .WithMany(user => user.CreatedOrders)
+                    .HasForeignKey(order => order.CreatedByUserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<OrderItem>(entity =>
+            {
+                entity.Property(item => item.ProductName).HasMaxLength(150).IsRequired();
+                entity.Property(item => item.Sku).HasMaxLength(50).IsRequired();
+                entity.Property(item => item.UnitPrice).HasPrecision(18, 2);
+                entity.Property(item => item.CostPrice).HasPrecision(18, 2);
+                entity.Property(item => item.LineTotal).HasPrecision(18, 2);
+                entity.HasOne(item => item.Order)
+                    .WithMany(order => order.Items)
+                    .HasForeignKey(item => item.OrderId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(item => item.Product)
+                    .WithMany(product => product.OrderItems)
+                    .HasForeignKey(item => item.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

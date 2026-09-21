@@ -1,0 +1,77 @@
+@model OrderIndexViewModel
+@{
+    ViewData["Title"] = "Đơn hàng";
+    string StatusText(OrderStatus status) => status switch
+    {
+        OrderStatus.Confirmed => "Đang xử lý",
+        OrderStatus.Completed => "Hoàn thành",
+        OrderStatus.Cancelled => "Đã hủy",
+        _ => status.ToString()
+    };
+    string StatusClass(OrderStatus status) => status switch
+    {
+        OrderStatus.Completed => "badge-success",
+        OrderStatus.Cancelled => "badge-danger",
+        _ => "badge-warning"
+    };
+}
+
+<section>
+    <div class="module-heading">
+        <div><span class="eyebrow">Bán hàng</span><h1>Đơn hàng</h1><p>Theo dõi giao dịch và trạng thái xử lý của cửa hàng hiện tại.</p></div>
+        <a class="btn btn-primary action-button" asp-action="Create"><span>＋</span> Tạo đơn hàng</a>
+    </div>
+
+    @if (TempData["Success"] is string success) { <div class="alert alert-success">@success</div> }
+    @if (TempData["Error"] is string error) { <div class="alert alert-danger">@error</div> }
+
+    <div class="content-card">
+        <form class="order-toolbar" method="get">
+            <div class="search-field"><span>⌕</span><input class="form-control" type="search" name="search" value="@Model.Search" placeholder="Tìm mã đơn, khách hàng hoặc số điện thoại" /></div>
+            <select class="form-select" name="status">
+                <option value="">Tất cả trạng thái</option>
+                <option value="@OrderStatus.Confirmed" selected="@(Model.Status == OrderStatus.Confirmed)">Đang xử lý</option>
+                <option value="@OrderStatus.Completed" selected="@(Model.Status == OrderStatus.Completed)">Hoàn thành</option>
+                <option value="@OrderStatus.Cancelled" selected="@(Model.Status == OrderStatus.Cancelled)">Đã hủy</option>
+            </select>
+            <button class="btn btn-light-primary" type="submit">Lọc</button>
+        </form>
+
+        @if (Model.Orders.Count == 0)
+        {
+            <div class="module-empty">
+                <span>▣</span><h2>Chưa có đơn hàng</h2>
+                <p>Tạo đơn hàng đầu tiên để bắt đầu ghi nhận doanh thu.</p>
+                <a class="btn btn-primary" asp-action="Create">Tạo đơn hàng</a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table order-management-table">
+                    <thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Sản phẩm</th><th>Tổng tiền</th><th>Thanh toán</th><th>Trạng thái</th><th>Thời gian</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var order in Model.Orders)
+                        {
+                            <tr>
+                                <td><a class="order-code-link" asp-action="Details" asp-route-id="@order.Id">@order.Code</a></td>
+                                <td><strong>@order.CustomerName</strong>@if (!string.IsNullOrWhiteSpace(order.CustomerPhone)) { <small class="d-block text-muted">@order.CustomerPhone</small> }</td>
+                                <td>@order.Items.Sum(item => item.Quantity)<small class="d-block text-muted">@order.Items.Count dòng sản phẩm</small></td>
+                                <td class="fw-semibold">@order.Total.ToString("N0") ₫</td>
+                                <td><span class="payment-state @(order.PaymentStatus == PaymentStatus.Paid ? "paid" : order.PaymentStatus == PaymentStatus.Refunded ? "refunded" : null)">@(order.PaymentStatus == PaymentStatus.Paid ? "Đã trả" : order.PaymentStatus == PaymentStatus.Refunded ? "Đã hoàn" : "Chưa trả")</span></td>
+                                <td><span class="badge-soft @StatusClass(order.Status)">@StatusText(order.Status)</span></td>
+                                <td>@order.CreatedAt.ToString("dd/MM/yyyy")<small class="d-block text-muted">@order.CreatedAt.ToString("HH:mm")</small></td>
+                                <td>
+                                    <div class="table-actions">
+                                        <a asp-action="Invoice" asp-route-id="@order.Id">Hóa đơn</a>
+                                        <a asp-action="Details" asp-route-id="@order.Id">Chi tiết →</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>

@@ -1,0 +1,48 @@
+@model Order
+@{
+    ViewData["Title"] = $"Đơn hàng {Model.Code}";
+    string StatusText(OrderStatus status) => status switch
+    {
+        OrderStatus.Confirmed => "Đang xử lý",
+        OrderStatus.Completed => "Hoàn thành",
+        OrderStatus.Cancelled => "Đã hủy",
+        _ => status.ToString()
+    };
+    string PaymentMethodText(PaymentMethod method) => method switch
+    {
+        PaymentMethod.BankTransfer => "Chuyển khoản",
+        PaymentMethod.Card => "Thẻ",
+        _ => "Tiền mặt"
+    };
+}
+
+<section>
+    <div class="module-heading order-detail-heading">
+        <div><a class="detail-back" asp-action="Index">← Danh sách đơn hàng</a><h1>@Model.Code</h1><p>Tạo lúc @Model.CreatedAt.ToString("HH:mm, dd/MM/yyyy") bởi @(Model.CreatedByUser?.FullName ?? "Người dùng đã xóa")</p></div>
+        <div class="order-detail-actions">
+            <a class="btn btn-light-primary" asp-action="Invoice" asp-route-id="@Model.Id">Xem hóa đơn</a>
+            @if (Model.Status == OrderStatus.Confirmed)
+            {
+                <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" onsubmit="return window.confirm(&quot;Hủy đơn và hoàn lại toàn bộ tồn kho?&quot;)"><button class="btn btn-outline-danger" type="submit">Hủy đơn</button></form>
+                <form asp-action="Complete" asp-route-id="@Model.Id" method="post"><button class="btn btn-primary" type="submit">Đánh dấu hoàn thành</button></form>
+            }
+        </div>
+    </div>
+
+    @if (TempData["Success"] is string success) { <div class="alert alert-success">@success</div> }
+    @if (TempData["Error"] is string error) { <div class="alert alert-danger">@error</div> }
+
+    <div class="row g-4">
+        <div class="col-xl-8">
+            <div class="content-card">
+                <div class="section-heading"><div><span class="eyebrow">Chi tiết</span><h2>Sản phẩm trong đơn</h2></div><span class="badge-soft @(Model.Status == OrderStatus.Completed ? "badge-success" : Model.Status == OrderStatus.Cancelled ? "badge-danger" : "badge-warning")">@StatusText(Model.Status)</span></div>
+                <div class="table-responsive"><table class="table order-detail-table"><thead><tr><th>Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr></thead><tbody>@foreach (var item in Model.Items) { <tr><td><strong>@item.ProductName</strong><small class="d-block text-muted">SKU: @item.Sku</small></td><td>@item.UnitPrice.ToString("N0") ₫</td><td>@item.Quantity</td><td class="fw-semibold">@item.LineTotal.ToString("N0") ₫</td></tr> }</tbody></table></div>
+                <div class="order-totals"><div><span>Tiền hàng</span><strong>@Model.Subtotal.ToString("N0") ₫</strong></div><div><span>Giảm giá</span><strong>-@Model.Discount.ToString("N0") ₫</strong></div><div><span>Tổng thanh toán</span><strong>@Model.Total.ToString("N0") ₫</strong></div></div>
+            </div>
+        </div>
+        <div class="col-xl-4">
+            <div class="content-card mb-4"><span class="eyebrow">Khách hàng</span><h2>@Model.CustomerName</h2><div class="detail-info-list"><div><span>Số điện thoại</span><strong>@(Model.CustomerPhone ?? "Chưa cung cấp")</strong></div><div><span>Ghi chú</span><strong>@(Model.Note ?? "Không có")</strong></div></div></div>
+            <div class="content-card"><span class="eyebrow">Thanh toán</span><h2>Thông tin thanh toán</h2><div class="detail-info-list"><div><span>Phương thức</span><strong>@PaymentMethodText(Model.PaymentMethod)</strong></div><div><span>Trạng thái</span><strong class="@(Model.PaymentStatus == PaymentStatus.Paid ? "text-success" : Model.PaymentStatus == PaymentStatus.Refunded ? "text-secondary" : "text-warning")">@(Model.PaymentStatus == PaymentStatus.Paid ? "Đã thanh toán" : Model.PaymentStatus == PaymentStatus.Refunded ? "Đã hoàn tiền" : "Chưa thanh toán")</strong></div></div></div>
+        </div>
+    </div>
+</section>

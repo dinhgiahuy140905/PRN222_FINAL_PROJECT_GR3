@@ -37,6 +37,14 @@ namespace SalesManagement.Web.Controllers
             }
 
             var storeId = membership.StoreId;
+            var monthStart = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            var monthOrders = _context.Orders
+                .AsNoTracking()
+                .Where(order =>
+                    order.StoreId == storeId &&
+                    order.CreatedAt >= monthStart &&
+                    order.Status != OrderStatus.Cancelled);
+
             var model = new DashboardViewModel
             {
                 StoreName = membership.Store.Name,
@@ -50,6 +58,36 @@ namespace SalesManagement.Web.Controllers
                         product.StoreId == storeId &&
                         product.IsActive &&
                         product.Inventory.Quantity <= product.Inventory.ReorderLevel),
+                OrderCount = await monthOrders.CountAsync(),
+                Revenue = await monthOrders
+                    .Where(order => order.Status == OrderStatus.Completed)
+                    .SumAsync(order => (decimal?)order.Total) ?? 0,
+                CustomerCount = await _context.Orders
+                    .AsNoTracking()
+                    .Where(order =>
+                        order.StoreId == storeId &&
+                        order.Status != OrderStatus.Cancelled &&
+                        order.CustomerPhone != null &&
+                        order.CustomerPhone != "")
+                    .Select(order => order.CustomerPhone)
+                    .Distinct()
+                    .CountAsync(),
+                RecentOrders = await _context.Orders
+                    .AsNoTracking()
+                    .Where(order => order.StoreId == storeId)
+                    .OrderByDescending(order => order.CreatedAt)
+                    .Take(5)
+                    .Select(order => new DashboardOrderViewModel
+                    {
+                        Id = order.Id,
+                        Code = order.Code,
+                        CustomerName = order.CustomerName,
+                        Status = order.Status,
+                        PaymentStatus = order.PaymentStatus,
+                        Total = order.Total,
+                        CreatedAt = order.CreatedAt
+                    })
+                    .ToListAsync(),
                 RecentInventoryActivities = await _context.InventoryTransactions
                     .AsNoTracking()
                     .Where(transaction => transaction.StoreId == storeId)

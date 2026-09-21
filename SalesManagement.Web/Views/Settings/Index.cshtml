@@ -1,0 +1,312 @@
+@using System.Security.Claims
+@model SettingsPageViewModel
+@{
+    ViewData["Title"] = "Cài đặt";
+    var initial = string.IsNullOrWhiteSpace(Model.Profile.FullName)
+        ? "U"
+        : Model.Profile.FullName[..1].ToUpperInvariant();
+}
+
+<section class="settings-page" data-active-section="@Model.ActiveSection">
+    <div class="module-heading">
+        <div>
+            <span class="eyebrow">SalesHub</span>
+            <h1>Cài đặt</h1>
+            <p>Quản lý tài khoản, cửa hàng và tùy chọn sử dụng hệ thống.</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] is string success)
+    {
+        <div class="alert alert-success settings-alert">@success</div>
+    }
+
+    <div class="settings-shell">
+        <nav class="settings-nav" aria-label="Danh mục cài đặt">
+            <button type="button" data-settings-target="profile">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
+                <span>Hồ sơ</span>
+            </button>
+            @if (Model.IsOwner)
+            {
+                <button type="button" data-settings-target="store">
+                    <svg viewBox="0 0 24 24"><path d="M3 9h18l-2-5H5L3 9Z" /><path d="M5 9v11h14V9M9 20v-6h6v6" /></svg>
+                    <span>Cửa hàng</span>
+                </button>
+            }
+            <button type="button" data-settings-target="appearance">
+                <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-1.1-.9-2-2-2h-2.2a2 2 0 0 1-1.8-2.9l.8-1.6A1.7 1.7 0 0 0 14.3 3H12Z" /><circle cx="7.5" cy="11" r=".7" /><circle cx="10" cy="7" r=".7" /><circle cx="7.5" cy="15" r=".7" /></svg>
+                <span>Giao diện</span>
+            </button>
+            <button type="button" data-settings-target="preferences">
+                <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6" /></svg>
+                <span>Tùy chọn</span>
+            </button>
+            <button type="button" data-settings-target="security">
+                <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" /></svg>
+                <span>Bảo mật</span>
+            </button>
+        </nav>
+
+        <div class="settings-content">
+            <section class="settings-section" data-settings-section="profile">
+                <div class="settings-section-heading">
+                    <div><h2>Hồ sơ cá nhân</h2><p>Thông tin hiển thị trong hệ thống và trên các thao tác của bạn.</p></div>
+                </div>
+                <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                    <div class="settings-avatar-row">
+                        <div class="settings-avatar">
+                            @if (!string.IsNullOrWhiteSpace(Model.Profile.AvatarPath))
+                            {
+                                <img src="@Model.Profile.AvatarPath" alt="" />
+                            }
+                            else
+                            {
+                                <span>@initial</span>
+                            }
+                        </div>
+                        <div>
+                            <label class="btn btn-light-primary settings-upload">
+                                Đổi ảnh đại diện
+                                <input asp-for="Profile.Avatar" type="file" accept=".jpg,.jpeg,.png,.webp" />
+                            </label>
+                            <small>JPG, PNG hoặc WebP · tối đa 2 MB</small>
+                            <span asp-validation-for="Profile.Avatar" class="text-danger small d-block"></span>
+                        </div>
+                    </div>
+                    <div class="settings-form-grid">
+                        <div>
+                            <label asp-for="Profile.FullName" class="form-label"></label>
+                            <input asp-for="Profile.FullName" class="form-control" />
+                            <span asp-validation-for="Profile.FullName" class="text-danger small"></span>
+                        </div>
+                        <div>
+                            <label asp-for="Profile.Email" class="form-label"></label>
+                            <input asp-for="Profile.Email" class="form-control" readonly aria-describedby="emailHelp" />
+                            <small id="emailHelp" class="field-help">Email đăng nhập không thể thay đổi tại đây.</small>
+                        </div>
+                        <div>
+                            <label asp-for="Profile.Phone" class="form-label"></label>
+                            <input asp-for="Profile.Phone" class="form-control" placeholder="Số điện thoại cá nhân" />
+                            <span asp-validation-for="Profile.Phone" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="settings-actions"><button class="btn btn-primary" type="submit">Lưu thay đổi</button></div>
+                </form>
+            </section>
+
+            @if (Model.IsOwner && Model.Store is not null)
+            {
+                <section class="settings-section" data-settings-section="store">
+                    <div class="settings-section-heading">
+                        <div><h2>Cài đặt cửa hàng</h2><p>Thông tin này được tái sử dụng trực tiếp trên hóa đơn bán hàng.</p></div>
+                        <span class="owner-badge">Owner</span>
+                    </div>
+                    <form asp-action="UpdateStore" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                        <div class="settings-avatar-row">
+                            <div class="settings-avatar store-logo-preview">
+                                @if (!string.IsNullOrWhiteSpace(Model.Store.LogoPath))
+                                {
+                                    <img src="@Model.Store.LogoPath" alt="" />
+                                }
+                                else
+                                {
+                                    <img src="~/images/saleshub-mark.svg" alt="" />
+                                }
+                            </div>
+                            <div>
+                                <label class="btn btn-light-primary settings-upload">
+                                    Đổi logo cửa hàng
+                                    <input asp-for="Store.Logo" type="file" accept=".jpg,.jpeg,.png,.webp" />
+                                </label>
+                                <small>Logo vuông hoặc nền trong suốt sẽ hiển thị tốt nhất.</small>
+                                <span asp-validation-for="Store.Logo" class="text-danger small d-block"></span>
+                            </div>
+                        </div>
+                        <div class="settings-form-grid">
+                            <div>
+                                <label asp-for="Store.Name" class="form-label"></label>
+                                <input asp-for="Store.Name" class="form-control" />
+                                <span asp-validation-for="Store.Name" class="text-danger small"></span>
+                            </div>
+                            <div>
+                                <label asp-for="Store.Phone" class="form-label"></label>
+                                <input asp-for="Store.Phone" class="form-control" />
+                                <span asp-validation-for="Store.Phone" class="text-danger small"></span>
+                            </div>
+                            <div class="settings-field-wide">
+                                <label asp-for="Store.Address" class="form-label"></label>
+                                <input asp-for="Store.Address" class="form-control" />
+                                <span asp-validation-for="Store.Address" class="text-danger small"></span>
+                            </div>
+                            <div>
+                                <label asp-for="Store.CurrencyCode" class="form-label"></label>
+                                <select asp-for="Store.CurrencyCode" class="form-select">
+                                    <option value="VND">VND — Việt Nam Đồng</option>
+                                    <option value="USD">USD — US Dollar</option>
+                                    <option value="EUR">EUR — Euro</option>
+                                </select>
+                            </div>
+                            <div class="settings-field-wide">
+                                <label asp-for="Store.InvoiceFooter" class="form-label"></label>
+                                <textarea asp-for="Store.InvoiceFooter" class="form-control" rows="2" placeholder="Ví dụ: Hàng đã mua vui lòng giữ lại hóa đơn."></textarea>
+                                <span asp-validation-for="Store.InvoiceFooter" class="text-danger small"></span>
+                            </div>
+                            <div class="settings-field-wide">
+                                <label asp-for="Store.InvoiceThankYou" class="form-label"></label>
+                                <input asp-for="Store.InvoiceThankYou" class="form-control" />
+                                <span asp-validation-for="Store.InvoiceThankYou" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        <div class="settings-actions"><button class="btn btn-primary" type="submit">Lưu cài đặt cửa hàng</button></div>
+                    </form>
+                </section>
+            }
+
+            <section class="settings-section" data-settings-section="appearance">
+                <div class="settings-section-heading">
+                    <div><h2>Giao diện</h2><p>Thay đổi được áp dụng ngay và lưu trên trình duyệt này.</p></div>
+                </div>
+                <div class="settings-option-group">
+                    <h3>Chế độ giao diện</h3>
+                    <div class="choice-grid theme-choice-grid">
+                        <label class="choice-card">
+                            <input type="radio" name="themePreference" value="light" data-theme-choice />
+                            <span class="theme-preview light"><i></i><b></b><em></em></span>
+                            <strong>Sáng</strong><small>Giao diện sáng, rõ ràng</small>
+                        </label>
+                        <label class="choice-card">
+                            <input type="radio" name="themePreference" value="dark" data-theme-choice />
+                            <span class="theme-preview dark"><i></i><b></b><em></em></span>
+                            <strong>Tối</strong><small>Dịu mắt trong môi trường tối</small>
+                        </label>
+                        <label class="choice-card">
+                            <input type="radio" name="themePreference" value="system" data-theme-choice />
+                            <span class="theme-preview system"><i></i><b></b><em></em></span>
+                            <strong>Theo hệ thống</strong><small>Tự động theo thiết bị</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-option-group">
+                    <h3>Sidebar</h3>
+                    <div class="segmented-options">
+                        <label><input type="radio" name="sidebarPreference" value="expanded" data-sidebar-choice /><span>Mở rộng</span></label>
+                        <label><input type="radio" name="sidebarPreference" value="collapsed" data-sidebar-choice /><span>Thu gọn</span></label>
+                    </div>
+                </div>
+            </section>
+
+            <section class="settings-section" data-settings-section="preferences">
+                <div class="settings-section-heading">
+                    <div><h2>Tùy chọn sử dụng</h2><p>Điều chỉnh cách dữ liệu được hiển thị trên thiết bị này.</p></div>
+                </div>
+                <form asp-action="UpdatePreferences" method="post" id="preferencesForm">
+                    <div class="settings-form-grid">
+                        <div>
+                            <label class="form-label" for="preferenceLanguage">Ngôn ngữ</label>
+                            <select class="form-select" id="preferenceLanguage" data-display-preference="language">
+                                <option value="vi">Tiếng Việt</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" for="preferenceDate">Định dạng ngày</label>
+                            <select class="form-select" id="preferenceDate" data-display-preference="dateFormat">
+                                <option value="dd/MM/yyyy">DD/MM/YYYY</option>
+                                <option value="MM/dd/yyyy">MM/DD/YYYY</option>
+                                <option value="yyyy-MM-dd">YYYY-MM-DD</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" for="preferenceNumber">Cách hiển thị số</label>
+                            <select class="form-select" id="preferenceNumber" data-display-preference="numberFormat">
+                                <option value="vi-VN">1.234,56</option>
+                                <option value="en-US">1,234.56</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" for="preferenceCurrency">Cách hiển thị tiền tệ</label>
+                            <select class="form-select" id="preferenceCurrency" data-display-preference="currencyDisplay">
+                                <option value="symbol">540.000 ₫</option>
+                                <option value="code">540.000 VND</option>
+                            </select>
+                        </div>
+                        <div class="settings-field-wide">
+                            <label class="form-label" for="defaultStoreId">Cửa hàng mặc định</label>
+                            <select class="form-select" id="defaultStoreId" name="defaultStoreId" asp-items="Model.AvailableStores">
+                                <option value="">Tự động chọn cửa hàng</option>
+                            </select>
+                            <small class="field-help">Được ưu tiên khi bạn đăng nhập lần tiếp theo.</small>
+                        </div>
+                    </div>
+                    <div class="settings-actions"><button class="btn btn-primary" type="submit">Lưu tùy chọn</button></div>
+                </form>
+            </section>
+
+            <section class="settings-section" data-settings-section="security">
+                <div class="settings-section-heading">
+                    <div><h2>Bảo mật</h2><p>Sử dụng mật khẩu riêng và không chia sẻ tài khoản với người khác.</p></div>
+                </div>
+                <form asp-action="ChangePassword" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                    <div class="settings-form-grid security-form-grid">
+                        <div class="settings-field-wide">
+                            <label asp-for="Security.CurrentPassword" class="form-label"></label>
+                            <input asp-for="Security.CurrentPassword" class="form-control" autocomplete="current-password" />
+                            <span asp-validation-for="Security.CurrentPassword" class="text-danger small"></span>
+                        </div>
+                        <div>
+                            <label asp-for="Security.NewPassword" class="form-label"></label>
+                            <input asp-for="Security.NewPassword" class="form-control" autocomplete="new-password" />
+                            <span asp-validation-for="Security.NewPassword" class="text-danger small"></span>
+                        </div>
+                        <div>
+                            <label asp-for="Security.ConfirmPassword" class="form-label"></label>
+                            <input asp-for="Security.ConfirmPassword" class="form-control" autocomplete="new-password" />
+                            <span asp-validation-for="Security.ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="password-meta">
+                        <span>Lần đổi mật khẩu gần nhất</span>
+                        <strong>@(Model.Security.PasswordChangedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa có thông tin")</strong>
+                    </div>
+                    <div class="settings-actions"><button class="btn btn-primary" type="submit">Đổi mật khẩu</button></div>
+                </form>
+            </section>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        (() => {
+            const page = document.querySelector(".settings-page");
+            if (!page) return;
+            const activate = section => {
+                page.querySelectorAll("[data-settings-target]").forEach(button => {
+                    const active = button.dataset.settingsTarget === section;
+                    button.classList.toggle("active", active);
+                    button.setAttribute("aria-selected", active.toString());
+                });
+                page.querySelectorAll("[data-settings-section]").forEach(panel => {
+                    panel.hidden = panel.dataset.settingsSection !== section;
+                });
+                history.replaceState(null, "", "?section=" + encodeURIComponent(section));
+            };
+            page.querySelectorAll("[data-settings-target]").forEach(button =>
+                button.addEventListener("click", () => activate(button.dataset.settingsTarget)));
+            activate(page.dataset.activeSection || "profile");
+
+            document.querySelectorAll("[data-display-preference]").forEach(select => {
+                const key = "saleshub-" + select.dataset.displayPreference;
+                select.value = localStorage.getItem(key) || select.value;
+            });
+            document.getElementById("preferencesForm")?.addEventListener("submit", () => {
+                document.querySelectorAll("[data-display-preference]").forEach(select =>
+                    localStorage.setItem("saleshub-" + select.dataset.displayPreference, select.value));
+            });
+        })();
+    </script>
+}

@@ -5,5 +5,6 @@ namespace SalesManagement.Web.Services
         public const string StoreId = "saleshub:store_id";
         public const string StoreName = "saleshub:store_name";
         public const string StoreRole = "saleshub:store_role";
+        public const string AvatarPath = "saleshub:avatar_path";
     }
 }

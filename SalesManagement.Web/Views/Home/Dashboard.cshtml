@@ -10,7 +10,9 @@
         <h1>Chào mừng trở lại, @displayName!</h1>
         <p>@(Model.IsNewStore ? "Cửa hàng đã sẵn sàng. Hãy hoàn tất vài bước đầu tiên để bắt đầu." : "Đây là dữ liệu thực tế của cửa hàng bạn đang quản lý.")</p>
     </div>
-    <a class="btn btn-primary action-button" asp-controller="Product" asp-action="Create"><span aria-hidden="true">＋</span> Thêm sản phẩm</a>
+    <a class="btn btn-primary action-button"
+       asp-controller="@(Model.ProductCount > 0 ? "Order" : "Product")"
+       asp-action="Create"><span aria-hidden="true">＋</span> @(Model.ProductCount > 0 ? "Tạo đơn hàng" : "Thêm sản phẩm")</a>
 </section>
 
 @if (Model.IsNewStore)
@@ -64,7 +66,7 @@
         <div class="getting-started-visual">
             <span>▤</span><i></i><span>▣</span><i></i><span>↗</span>
         </div>
-        <div><h2>Dữ liệu sẽ xuất hiện như thế nào?</h2><p>Thêm sản phẩm để theo dõi tồn kho. Khi module đơn hàng được sử dụng, doanh thu và báo cáo bán hàng sẽ tự động được tổng hợp tại đây.</p></div>
+        <div><h2>Dữ liệu sẽ xuất hiện như thế nào?</h2><p>Thêm sản phẩm để theo dõi tồn kho. Khi tạo đơn hàng, doanh thu, số đơn và khách hàng sẽ tự động được tổng hợp tại đây.</p></div>
     </section>
 }
 else
@@ -72,14 +74,14 @@ else
     <section class="row g-3 g-xl-4 mb-4" aria-label="Chỉ số kinh doanh">
         <div class="col-sm-6 col-xl-3">
             <article class="stat-card">
-                <div class="stat-card-top"><span class="stat-icon stat-icon-purple"><svg viewBox="0 0 24 24"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3" /></svg></span><span class="data-status">Chưa có dữ liệu</span></div>
-                <div class="stat-value">@Model.Revenue.ToString("N0") ₫</div><div class="stat-label">Doanh thu tháng này</div><div class="stat-note">Sẽ cập nhật khi có đơn hàng</div>
+                <div class="stat-card-top"><span class="stat-icon stat-icon-purple"><svg viewBox="0 0 24 24"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3" /></svg></span><span class="data-status real">Dữ liệu thực</span></div>
+                <div class="stat-value">@Model.Revenue.ToString("N0") ₫</div><div class="stat-label">Doanh thu tháng này</div><div class="stat-note">Từ các đơn đã hoàn thành</div>
             </article>
         </div>
         <div class="col-sm-6 col-xl-3">
             <article class="stat-card">
                 <div class="stat-card-top"><span class="stat-icon stat-icon-green"><svg viewBox="0 0 24 24"><path d="M6 7h12l1 13H5L6 7Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></svg></span><span class="data-status">Thực tế</span></div>
-                <div class="stat-value">@Model.OrderCount</div><div class="stat-label">Đơn hàng</div><div class="stat-note">Chưa có giao dịch bán hàng</div>
+                <div class="stat-value">@Model.OrderCount</div><div class="stat-label">Đơn hàng tháng này</div><div class="stat-note">Không tính đơn đã hủy</div>
             </article>
         </div>
         <div class="col-sm-6 col-xl-3">
@@ -130,16 +132,51 @@ else
                 </div>
                 <div class="quick-actions dashboard-actions">
                     <a asp-controller="Product" asp-action="Create"><span class="quick-icon stat-icon-purple">＋</span><span><strong>Thêm sản phẩm</strong><small>Tạo sản phẩm mới</small></span><b>→</b></a>
+                    <a asp-controller="Order" asp-action="Create"><span class="quick-icon stat-icon-green">▤</span><span><strong>Tạo đơn hàng</strong><small>Bán hàng và trừ tồn kho</small></span><b>→</b></a>
                     <a asp-controller="Product" asp-action="Index" asp-route-lowStockOnly="true"><span class="quick-icon stat-icon-orange">!</span><span><strong>Kiểm tra sắp hết</strong><small>@Model.LowStockCount sản phẩm cần chú ý</small></span><b>→</b></a>
-                    <a asp-controller="Category" asp-action="Index"><span class="quick-icon stat-icon-green">◇</span><span><strong>Danh mục</strong><small>Sắp xếp sản phẩm</small></span><b>→</b></a>
                 </div>
             </article>
         </div>
     </section>
 
-    <section class="content-card sales-empty-panel mt-4">
-        <div class="dashboard-empty-icon"><svg viewBox="0 0 24 24"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3" /></svg></div>
-        <div><span class="eyebrow">Bán hàng và doanh thu</span><h2>Chưa có dữ liệu giao dịch</h2><p>Biểu đồ doanh thu, đơn hàng gần đây và số lượng khách hàng sẽ xuất hiện khi module bán hàng được đưa vào sử dụng.</p></div>
-        <span class="coming-soon-badge">Đang hoàn thiện</span>
+    <section class="content-card mt-4">
+        <div class="section-heading">
+            <div><span class="eyebrow">Bán hàng thực tế</span><h2>Đơn hàng gần đây</h2></div>
+            <a class="text-link" asp-controller="Order" asp-action="Index">Xem tất cả →</a>
+        </div>
+        @if (Model.RecentOrders.Count == 0)
+        {
+            <div class="dashboard-empty compact">
+                <span>▤</span><h3>Chưa có đơn hàng</h3>
+                <p>Tạo đơn đầu tiên để bắt đầu ghi nhận doanh thu và khách hàng.</p>
+                <a class="btn btn-primary btn-sm mt-2" asp-controller="Order" asp-action="Create">Tạo đơn hàng</a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive mt-3">
+                <table class="table order-management-table mb-0">
+                    <thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Trạng thái</th><th>Thanh toán</th><th>Tổng tiền</th><th>Thời gian</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var order in Model.RecentOrders)
+                    {
+                        var statusClass = order.Status == OrderStatus.Completed ? "badge-success" : order.Status == OrderStatus.Cancelled ? "badge-danger" : "badge-warning";
+                        var statusText = order.Status == OrderStatus.Completed ? "Hoàn thành" : order.Status == OrderStatus.Cancelled ? "Đã hủy" : "Đang xử lý";
+                        var paymentClass = order.PaymentStatus == PaymentStatus.Paid ? "paid" : order.PaymentStatus == PaymentStatus.Refunded ? "refunded" : "";
+                        var paymentText = order.PaymentStatus == PaymentStatus.Paid ? "Đã thanh toán" : order.PaymentStatus == PaymentStatus.Refunded ? "Đã hoàn tiền" : "Chưa thanh toán";
+                        <tr>
+                            <td><a class="order-code-link" asp-controller="Order" asp-action="Details" asp-route-id="@order.Id">@order.Code</a></td>
+                            <td>@order.CustomerName</td>
+                            <td><span class="badge-soft @statusClass">@statusText</span></td>
+                            <td><span class="payment-state @paymentClass">@paymentText</span></td>
+                            <td><strong>@order.Total.ToString("N0") ₫</strong></td>
+                            <td>@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td><a class="table-detail-link" asp-controller="Order" asp-action="Details" asp-route-id="@order.Id">Chi tiết →</a></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
     </section>
 }

@@ -1,0 +1,111 @@
+@model Order
+@{
+    var isCancelled = Model.Status == OrderStatus.Cancelled;
+    var currencyLabel = Model.Store.CurrencyCode == "VND" ? "₫" : Model.Store.CurrencyCode;
+    string Money(decimal value) => $"{value:N0} {currencyLabel}";
+    string StatusText(OrderStatus status) => status switch
+    {
+        OrderStatus.Confirmed => "Đang xử lý",
+        OrderStatus.Completed => "Hoàn thành",
+        OrderStatus.Cancelled => "Đã hủy",
+        _ => status.ToString()
+    };
+    string PaymentStatusText(PaymentStatus status) => status switch
+    {
+        PaymentStatus.Paid => "PAID",
+        PaymentStatus.Refunded => "REFUNDED",
+        _ => "UNPAID"
+    };
+    string PaymentMethodText(PaymentMethod method) => method switch
+    {
+        PaymentMethod.BankTransfer => "Chuyển khoản",
+        PaymentMethod.Card => "Thẻ",
+        _ => "Tiền mặt"
+    };
+}
+
+<article class="invoice-document @(isCancelled ? "is-cancelled" : null)">
+    @if (isCancelled)
+    {
+        <div class="invoice-watermark" aria-hidden="true">ĐÃ HỦY</div>
+    }
+
+    <header class="invoice-header">
+        <div class="invoice-store">
+            <div class="invoice-brand">
+                <img class="invoice-brand-mark" src="@(Model.Store.LogoPath ?? Url.Content("~/images/saleshub-mark.svg"))" alt="" />
+                <span><b>@Model.Store.Name</b><small>Powered by SalesHub</small></span>
+            </div>
+            <address>
+                @(string.IsNullOrWhiteSpace(Model.Store.Address) ? "Địa chỉ chưa cập nhật" : Model.Store.Address)<br />
+                @(string.IsNullOrWhiteSpace(Model.Store.Phone) ? "Điện thoại chưa cập nhật" : Model.Store.Phone)
+            </address>
+        </div>
+        <div class="invoice-identity">
+            <span>INVOICE</span>
+            <strong>#@Model.Code</strong>
+            <time>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</time>
+            <em class="invoice-order-status @(Model.Status == OrderStatus.Completed ? "completed" : isCancelled ? "cancelled" : null)">
+                @StatusText(Model.Status)
+            </em>
+        </div>
+    </header>
+
+    <section class="invoice-meta">
+        <div>
+            <span class="invoice-label">CUSTOMER</span>
+            <strong>@Model.CustomerName</strong>
+            <p>@(string.IsNullOrWhiteSpace(Model.CustomerPhone) ? "Không có số điện thoại" : Model.CustomerPhone)</p>
+        </div>
+        <div>
+            <span class="invoice-label">PAYMENT</span>
+            <strong>@PaymentMethodText(Model.PaymentMethod)</strong>
+            <p>Status: <b class="invoice-payment-status @Model.PaymentStatus.ToString().ToLowerInvariant()">@PaymentStatusText(Model.PaymentStatus)</b></p>
+        </div>
+    </section>
+
+    <div class="invoice-table-wrap">
+        <table class="invoice-items">
+            <thead>
+                <tr><th>#</th><th>Product</th><th>Qty</th><th>Unit Price</th><th>Discount</th><th>Amount</th></tr>
+            </thead>
+            <tbody>
+                @for (var index = 0; index < Model.Items.Count; index++)
+                {
+                    var item = Model.Items.ElementAt(index);
+                    <tr>
+                        <td>@(index + 1)</td>
+                        <td><strong>@item.ProductName</strong></td>
+                        <td>@item.Quantity</td>
+                        <td>@Money(item.UnitPrice)</td>
+                        <td>—</td>
+                        <td><strong>@Money(item.LineTotal)</strong></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <section class="invoice-summary-area">
+        <div class="invoice-service">
+            <span>Served by:</span>
+            <strong>@(Model.CreatedByUser?.FullName ?? "Người dùng đã xóa")</strong>
+            @if (!string.IsNullOrWhiteSpace(Model.Note))
+            {
+                <p><b>Ghi chú:</b> @Model.Note</p>
+            }
+        </div>
+        <div class="invoice-summary">
+            <div><span>Subtotal</span><strong>@Money(Model.Subtotal)</strong></div>
+            <div><span>Discount</span><strong>-@Money(Model.Discount)</strong></div>
+            <div><span>Tax</span><strong>@Money(0)</strong></div>
+            <div class="invoice-total"><span>TOTAL</span><strong>@Money(Model.Total)</strong></div>
+        </div>
+    </section>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Store.InvoiceFooter))
+    {
+        <div class="invoice-store-footer">@Model.Store.InvoiceFooter</div>
+    }
+    <footer class="invoice-thanks">@Model.Store.InvoiceThankYou</footer>
+</article>

@@ -11,8 +11,21 @@ namespace SalesManagement.Web.Models
         public int CustomerCount { get; set; }
         public IReadOnlyList<InventoryActivityViewModel> RecentInventoryActivities { get; set; }
             = Array.Empty<InventoryActivityViewModel>();
+        public IReadOnlyList<DashboardOrderViewModel> RecentOrders { get; set; }
+            = Array.Empty<DashboardOrderViewModel>();
 
         public bool IsNewStore => ProductCount == 0 && OrderCount == 0 && CustomerCount == 0;
+    }
+
+    public class DashboardOrderViewModel
+    {
+        public int Id { get; set; }
+        public string Code { get; set; } = string.Empty;
+        public string CustomerName { get; set; } = string.Empty;
+        public OrderStatus Status { get; set; }
+        public PaymentStatus PaymentStatus { get; set; }
+        public decimal Total { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 
     public class InventoryActivityViewModel

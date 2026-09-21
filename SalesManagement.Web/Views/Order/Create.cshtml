@@ -1,0 +1,142 @@
+@using System.Text.Json
+@model CreateOrderViewModel
+@{
+    ViewData["Title"] = "Tạo đơn hàng";
+    var productsJson = JsonSerializer.Serialize(Model.Products);
+}
+
+<section>
+    <div class="module-heading">
+        <div><span class="eyebrow">Bán hàng</span><h1>Tạo đơn hàng mới</h1><p>Giá bán và tồn kho sẽ được xác minh lại khi lưu đơn.</p></div>
+        <a class="btn btn-light-primary" asp-action="Index">← Danh sách đơn</a>
+    </div>
+
+    @if (Model.Products.Count == 0)
+    {
+        <div class="content-card order-no-products">
+            <span class="order-empty-icon">▤</span>
+            <h2>Chưa có sản phẩm để bán</h2>
+            <p>Hãy thêm ít nhất một sản phẩm trước khi tạo đơn hàng.</p>
+            <a class="btn btn-primary" asp-controller="Product" asp-action="Create">Thêm sản phẩm</a>
+        </div>
+    }
+    else
+    {
+        <form asp-action="Create" method="post" id="orderForm">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <div class="row g-4">
+                <div class="col-xl-8">
+                    <div class="content-card order-builder">
+                        <div class="section-heading"><div><span class="eyebrow">Sản phẩm</span><h2>Chi tiết đơn hàng</h2></div><button class="btn btn-sm btn-light-primary" id="addOrderItem" type="button">＋ Thêm dòng</button></div>
+                        <div class="order-item-head"><span>Sản phẩm</span><span>Số lượng</span><span>Đơn giá</span><span>Thành tiền</span><span></span></div>
+                        <div id="orderItems">
+                            @for (var index = 0; index < Model.Items.Count; index++)
+                            {
+                                <div class="order-item-row">
+                                    <select class="form-select product-select" name="Items[@index].ProductId" required>
+                                        <option value="">Chọn sản phẩm</option>
+                                        @foreach (var product in Model.Products)
+                                        {
+                                            <option value="@product.Id" selected="@(product.Id == Model.Items[index].ProductId)">@product.Name · @product.Sku (còn @product.Stock)</option>
+                                        }
+                                    </select>
+                                    <input class="form-control quantity-input" name="Items[@index].Quantity" type="number" min="1" value="@Model.Items[index].Quantity" required />
+                                    <span class="item-price">0 ₫</span>
+                                    <strong class="item-total">0 ₫</strong>
+                                    <button class="remove-order-item" type="button" aria-label="Xóa dòng">×</button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="content-card mt-4">
+                        <span class="eyebrow">Khách hàng</span><h2>Thông tin người mua</h2>
+                        <div class="row mt-3">
+                            <div class="col-md-6 mb-3"><label asp-for="CustomerName" class="form-label fw-semibold"></label><input asp-for="CustomerName" class="form-control" placeholder="Để trống nếu là khách lẻ" /><span asp-validation-for="CustomerName" class="text-danger small"></span></div>
+                            <div class="col-md-6 mb-3"><label asp-for="CustomerPhone" class="form-label fw-semibold"></label><input asp-for="CustomerPhone" class="form-control" placeholder="Số điện thoại (không bắt buộc)" /><span asp-validation-for="CustomerPhone" class="text-danger small"></span></div>
+                        </div>
+                        <div><label asp-for="Note" class="form-label fw-semibold"></label><textarea asp-for="Note" class="form-control" rows="3" placeholder="Ghi chú cho đơn hàng"></textarea><span asp-validation-for="Note" class="text-danger small"></span></div>
+                    </div>
+                </div>
+
+                <div class="col-xl-4">
+                    <div class="content-card order-summary-card">
+                        <span class="eyebrow">Thanh toán</span><h2>Tổng kết đơn hàng</h2>
+                        <div class="order-summary-lines">
+                            <div><span>Tiền hàng</span><strong id="orderSubtotal">0 ₫</strong></div>
+                            <div class="discount-line"><label asp-for="Discount"></label><div class="input-group"><input asp-for="Discount" class="form-control" min="0" /><span class="input-group-text">₫</span></div><span asp-validation-for="Discount" class="text-danger small"></span></div>
+                            <div class="order-grand-total"><span>Khách cần trả</span><strong id="orderTotal">0 ₫</strong></div>
+                        </div>
+                        <div class="mb-3"><label asp-for="PaymentMethod" class="form-label fw-semibold"></label><select asp-for="PaymentMethod" class="form-select"><option value="@PaymentMethod.Cash">Tiền mặt</option><option value="@PaymentMethod.BankTransfer">Chuyển khoản</option><option value="@PaymentMethod.Card">Thẻ</option></select></div>
+                        <label class="payment-check"><input asp-for="IsPaid" class="form-check-input" /><span><strong>Đã nhận thanh toán</strong><small>Đánh dấu đơn là đã thanh toán</small></span></label>
+                        <button class="btn btn-primary w-100 py-2 mt-4" type="submit">Xác nhận và tạo đơn</button>
+                        <p class="order-submit-note">Tồn kho sẽ được trừ ngay sau khi tạo đơn thành công.</p>
+                    </div>
+                </div>
+            </div>
+        </form>
+    }
+</section>
+
+@section Scripts {
+<script>
+    (() => {
+        const products = @Html.Raw(productsJson);
+        const productMap = new Map(products.map(product => [String(product.Id), product]));
+        const container = document.getElementById("orderItems");
+        const addButton = document.getElementById("addOrderItem");
+        const discountInput = document.getElementById("Discount");
+        const currency = value => new Intl.NumberFormat("vi-VN").format(Math.max(0, value || 0)) + " ₫";
+        const options = () => products.map(product =>
+            `<option value="${product.Id}">${product.Name} · ${product.Sku} (còn ${product.Stock})</option>`
+        ).join("");
+
+        const reindex = () => {
+            container?.querySelectorAll(".order-item-row").forEach((row, index) => {
+                row.querySelector(".product-select").name = `Items[${index}].ProductId`;
+                row.querySelector(".quantity-input").name = `Items[${index}].Quantity`;
+            });
+        };
+
+        const calculate = () => {
+            let subtotal = 0;
+            container?.querySelectorAll(".order-item-row").forEach(row => {
+                const product = productMap.get(row.querySelector(".product-select").value);
+                const quantity = Number(row.querySelector(".quantity-input").value) || 0;
+                const price = product?.SalePrice || 0;
+                const lineTotal = price * quantity;
+                row.querySelector(".item-price").textContent = currency(price);
+                row.querySelector(".item-total").textContent = currency(lineTotal);
+                subtotal += lineTotal;
+            });
+            const discount = Number(discountInput?.value) || 0;
+            document.getElementById("orderSubtotal").textContent = currency(subtotal);
+            document.getElementById("orderTotal").textContent = currency(subtotal - discount);
+        };
+
+        const bindRow = row => {
+            row.querySelectorAll("select,input").forEach(input => input.addEventListener("input", calculate));
+            row.querySelector(".remove-order-item").addEventListener("click", () => {
+                if (container.querySelectorAll(".order-item-row").length > 1) {
+                    row.remove();
+                    reindex();
+                    calculate();
+                }
+            });
+        };
+
+        addButton?.addEventListener("click", () => {
+            const row = document.createElement("div");
+            row.className = "order-item-row";
+            row.innerHTML = `<select class="form-select product-select" required><option value="">Chọn sản phẩm</option>${options()}</select><input class="form-control quantity-input" type="number" min="1" value="1" required /><span class="item-price">0 ₫</span><strong class="item-total">0 ₫</strong><button class="remove-order-item" type="button" aria-label="Xóa dòng">×</button>`;
+            container.appendChild(row);
+            bindRow(row);
+            reindex();
+        });
+
+        container?.querySelectorAll(".order-item-row").forEach(bindRow);
+        discountInput?.addEventListener("input", calculate);
+        calculate();
+    })();
+</script>
+}

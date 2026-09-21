@@ -22,6 +22,7 @@ namespace SalesManagement.Web.Models
         public InventoryItem Inventory { get; set; } = null!;
         public ICollection<InventoryTransaction> InventoryTransactions { get; set; }
             = new List<InventoryTransaction>();
+        public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }
 
     public class InventoryItem
@@ -45,6 +46,7 @@ namespace SalesManagement.Web.Models
         public int StoreId { get; set; }
         public int ProductId { get; set; }
         public int? UserId { get; set; }
+        public int? OrderId { get; set; }
         public InventoryTransactionType Type { get; set; }
         public int QuantityChange { get; set; }
         public int QuantityAfter { get; set; }
@@ -54,6 +56,7 @@ namespace SalesManagement.Web.Models
         public Store Store { get; set; } = null!;
         public Product Product { get; set; } = null!;
         public User? User { get; set; }
+        public Order? Order { get; set; }
     }
 
     public enum InventoryTransactionType

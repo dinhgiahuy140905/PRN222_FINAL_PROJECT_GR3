@@ -1,0 +1,32 @@
+@model Order
+@{
+    ViewData["Title"] = $"Hóa đơn {Model.Code}";
+    var autoPrint = ViewData["AutoPrint"] as bool? == true;
+}
+
+<section class="invoice-page">
+    <div class="invoice-page-toolbar">
+        <div>
+            <a class="detail-back" asp-action="Details" asp-route-id="@Model.Id">← Quay lại đơn hàng</a>
+            <h1>Chi tiết hóa đơn</h1>
+            <p>Kiểm tra nội dung trước khi in hoặc lưu thành PDF.</p>
+        </div>
+        <div class="invoice-page-actions">
+            <a class="btn btn-light-primary" asp-action="Details" asp-route-id="@Model.Id">Đóng</a>
+            <a class="btn btn-primary" asp-action="Invoice" asp-route-id="@Model.Id" asp-route-print="true" target="_blank" rel="noopener">
+                In / Lưu PDF
+            </a>
+        </div>
+    </div>
+
+    <partial name="_InvoiceContent" model="Model" />
+</section>
+
+@if (autoPrint)
+{
+    @section Scripts {
+        <script>
+            window.addEventListener("load", () => window.print(), { once: true });
+        </script>
+    }
+}

@@ -54,17 +54,24 @@ namespace SalesManagement.Web.Controllers
             var email = NormalizeEmail(model.Email);
             var user = await _context.Users.SingleOrDefaultAsync(item => item.Email == email);
 
-            if (user is null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.Password)
-                == PasswordVerificationResult.Failed)
+            var verificationResult = VerifyPassword(user, model.Password);
+            if (user is null || verificationResult == PasswordVerificationResult.Failed)
             {
                 ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không chính xác.");
                 return View(model);
             }
 
+            if (verificationResult == PasswordVerificationResult.SuccessRehashNeeded)
+            {
+                user.PasswordHash = _passwordHasher.HashPassword(user, model.Password);
+                await _context.SaveChangesAsync();
+            }
+
             var membership = await _context.StoreMembers
                 .Include(member => member.Store)
                 .Where(member => member.UserId == user.Id)
-                .OrderByDescending(member => member.Role == StoreRole.Owner)
+                .OrderByDescending(member => member.StoreId == user.DefaultStoreId)
+                .ThenByDescending(member => member.Role == StoreRole.Owner)
                 .ThenBy(member => member.Store.Name)
                 .FirstOrDefaultAsync();
 
@@ -161,6 +168,25 @@ namespace SalesManagement.Web.Controllers
         private static string NormalizeEmail(string email)
         {
             return email.Trim().ToLowerInvariant();
+        }
+
+        private PasswordVerificationResult VerifyPassword(User? user, string password)
+        {
+            if (user is null || string.IsNullOrWhiteSpace(user.PasswordHash))
+            {
+                return PasswordVerificationResult.Failed;
+            }
+
+            try
+            {
+                return _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+            }
+            catch (FormatException)
+            {
+                // Treat legacy or damaged password data as invalid credentials instead of
+                // exposing an application error. The account can then be recovered safely.
+                return PasswordVerificationResult.Failed;
+            }
         }
     }
 }

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">SalesHub</title>
+  <defs>
+    <linearGradient id="speed" x1="2" y1="34" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="top" x1="14" y1="8" x2="54" y2="29" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60a5fa"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="left" x1="13" y1="25" x2="34" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="right" x1="35" y1="31" x2="57" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#173b72"/>
+      <stop offset="1" stop-color="#0b1933"/>
+    </linearGradient>
+  </defs>
+  <path d="M3 29h17M8 36h15M14 43h9" fill="none" stroke="url(#speed)" stroke-width="5" stroke-linecap="round"/>
+  <path d="m34 5 25 14-25 14L9 19 34 5Z" fill="url(#top)" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+  <path d="m9 22 23 13v25L9 47V22Z" fill="url(#left)" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+  <path d="m34 35 25-13v25L34 60V35Z" fill="url(#right)" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+</svg>

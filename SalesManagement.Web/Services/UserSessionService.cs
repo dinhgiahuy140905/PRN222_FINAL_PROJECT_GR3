@@ -28,6 +28,11 @@ namespace SalesManagement.Web.Services
                 new(ClaimTypes.Email, user.Email)
             };
 
+            if (!string.IsNullOrWhiteSpace(user.AvatarPath))
+            {
+                claims.Add(new Claim(StoreClaimTypes.AvatarPath, user.AvatarPath));
+            }
+
             if (membership?.Store is not null)
             {
                 claims.Add(new Claim(StoreClaimTypes.StoreId, membership.StoreId.ToString()));

@@ -5,12 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f5f7fb" />
     <title>@ViewData["Title"] - SalesHub</title>
+    <link rel="icon" type="image/svg+xml" href="~/images/saleshub-mark.svg" />
+    <script>
+        (() => {
+            const root = document.documentElement;
+            const media = matchMedia("(prefers-color-scheme: dark)");
+            const stored = localStorage.getItem("saleshub-theme");
+            const preference = ["light", "dark", "system"].includes(stored) ? stored : "system";
+            const apply = () => root.dataset.theme = preference === "system"
+                ? (media.matches ? "dark" : "light")
+                : preference;
+            root.dataset.themePreference = preference;
+            apply();
+            media.addEventListener("change", () => preference === "system" && apply());
+        })();
+    </script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body class="auth-body">
     <header class="auth-header">
-        <a class="auth-brand" asp-controller="Home" asp-action="Index"><span>S</span><b>Sales<i>Hub</i></b></a>
+        <a class="auth-brand" asp-controller="Home" asp-action="Index"><img src="~/images/saleshub-mark.svg" alt="" /><b>Sales<i>Hub</i></b></a>
         <a class="auth-back" asp-controller="Home" asp-action="Index">← Về trang chủ</a>
     </header>
     <main class="auth-main">@RenderBody()</main>
