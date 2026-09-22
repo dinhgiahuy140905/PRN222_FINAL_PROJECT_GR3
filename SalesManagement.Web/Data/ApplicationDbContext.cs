@@ -20,6 +20,7 @@ namespace SalesManagement.Web.Data
         public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
         public DbSet<InventoryTransaction> InventoryTransactions => Set<InventoryTransaction>();
         public DbSet<Order> Orders => Set<Order>();
+        public DbSet<Customer> Customers => Set<Customer>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -122,7 +123,10 @@ namespace SalesManagement.Web.Data
             modelBuilder.Entity<InventoryItem>(entity =>
             {
                 entity.HasIndex(item => item.ProductId).IsUnique();
-                entity.Property(item => item.RowVersion).IsRowVersion();
+                if (Database.IsSqlServer())
+                    entity.Property(item => item.RowVersion).IsRowVersion();
+                else
+                    entity.Property(item => item.RowVersion).IsConcurrencyToken().ValueGeneratedNever();
                 entity.HasOne(item => item.Product)
                     .WithOne(product => product.Inventory)
                     .HasForeignKey<InventoryItem>(item => item.ProductId)
@@ -158,8 +162,21 @@ namespace SalesManagement.Web.Data
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
+            modelBuilder.Entity<Customer>(entity =>
+            {
+                entity.Property(customer => customer.Name).HasMaxLength(100).IsRequired();
+                entity.Property(customer => customer.Phone).HasMaxLength(20);
+                entity.Property(customer => customer.Email).HasMaxLength(200);
+                entity.Property(customer => customer.Note).HasMaxLength(500);
+                entity.HasIndex(customer => new { customer.StoreId, customer.Name });
+                entity.HasOne(customer => customer.Store).WithMany()
+                    .HasForeignKey(customer => customer.StoreId).OnDelete(DeleteBehavior.NoAction);
+            });
+
             modelBuilder.Entity<Order>(entity =>
             {
+                entity.HasOne(order => order.Customer).WithMany(customer => customer.Orders)
+                    .HasForeignKey(order => order.CustomerId).OnDelete(DeleteBehavior.SetNull);
                 entity.Property(order => order.Code).HasMaxLength(30).IsRequired();
                 entity.Property(order => order.CustomerName).HasMaxLength(100).IsRequired();
                 entity.Property(order => order.CustomerPhone).HasMaxLength(20);

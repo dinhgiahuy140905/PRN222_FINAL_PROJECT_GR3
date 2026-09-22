@@ -12,9 +12,9 @@
     };
     string PaymentStatusText(PaymentStatus status) => status switch
     {
-        PaymentStatus.Paid => "PAID",
-        PaymentStatus.Refunded => "REFUNDED",
-        _ => "UNPAID"
+        PaymentStatus.Paid => "ĐÃ THANH TOÁN",
+        PaymentStatus.Refunded => "ĐÃ HOÀN TIỀN",
+        _ => "CHƯA THANH TOÁN"
     };
     string PaymentMethodText(PaymentMethod method) => method switch
     {
@@ -60,7 +60,7 @@
         <div>
             <span class="invoice-label">PAYMENT</span>
             <strong>@PaymentMethodText(Model.PaymentMethod)</strong>
-            <p>Status: <b class="invoice-payment-status @Model.PaymentStatus.ToString().ToLowerInvariant()">@PaymentStatusText(Model.PaymentStatus)</b></p>
+            <p>Trạng thái lưu trong hệ thống: <b class="invoice-payment-status @Model.PaymentStatus.ToString().ToLowerInvariant()">@PaymentStatusText(Model.PaymentStatus)</b></p><p>Thay đổi thanh toán mới do nhân viên xác nhận thủ công, không qua cổng thanh toán.</p>
         </div>
     </section>
 

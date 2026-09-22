@@ -1,0 +1,10 @@
+@model IReadOnlyList<Customer>
+@{ ViewData["Title"] = "Khách hàng"; }
+<section>
+    <div class="module-heading"><div><span class="eyebrow">Cửa hàng hiện tại</span><h1>Khách hàng</h1><p>Hồ sơ khách được dùng cho đơn mới. Hóa đơn đã lập giữ nguyên thông tin lúc bán.</p></div><a class="btn btn-primary" asp-action="Create">Thêm khách hàng</a></div>
+    <div class="content-card">
+        <form method="get" class="d-flex gap-2 mb-4"><input class="form-control" name="search" value="@ViewData["Search"]" placeholder="Tìm tên hoặc số điện thoại" /><button class="btn btn-light-primary">Tìm</button></form>
+        @if (Model.Count == 0) { <p class="text-muted mb-0">Chưa có khách hàng phù hợp.</p> }
+        else { <div class="table-responsive"><table class="table"><thead><tr><th>Khách hàng</th><th>Số điện thoại</th><th>Email</th><th></th></tr></thead><tbody>@foreach (var customer in Model) { <tr><td><strong>@customer.Name</strong></td><td>@(customer.Phone ?? "—")</td><td>@(customer.Email ?? "—")</td><td><a asp-action="Edit" asp-route-id="@customer.Id">Sửa</a></td></tr> }</tbody></table></div> }
+    </div>
+</section>

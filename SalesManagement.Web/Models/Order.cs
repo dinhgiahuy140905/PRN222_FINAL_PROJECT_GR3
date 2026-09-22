@@ -4,6 +4,7 @@ namespace SalesManagement.Web.Models
     {
         public int Id { get; set; }
         public int StoreId { get; set; }
+        public int? CustomerId { get; set; }
         public int? CreatedByUserId { get; set; }
         public string Code { get; set; } = string.Empty;
         public string CustomerName { get; set; } = "Khách lẻ";
@@ -20,6 +21,7 @@ namespace SalesManagement.Web.Models
         public DateTime? CompletedAt { get; set; }
 
         public Store Store { get; set; } = null!;
+        public Customer? Customer { get; set; }
         public User? CreatedByUser { get; set; }
         public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
         public ICollection<InventoryTransaction> InventoryTransactions { get; set; }

@@ -52,9 +52,11 @@
                     <div class="content-card mt-4">
                         <span class="eyebrow">Khách hàng</span><h2>Thông tin người mua</h2>
                         <div class="row mt-3">
+                            <div class="col-12 mb-3"><label asp-for="CustomerId" class="form-label fw-semibold">Khách hàng có hồ sơ</label><select asp-for="CustomerId" class="form-select"><option value="">Khách lẻ / nhập khách mới</option>@foreach (var customer in Model.Customers) { <option value="@customer.Id">@customer.Name @(customer.Phone is null ? "" : " · " + customer.Phone)</option> }</select><span asp-validation-for="CustomerId" class="text-danger small"></span></div>
                             <div class="col-md-6 mb-3"><label asp-for="CustomerName" class="form-label fw-semibold"></label><input asp-for="CustomerName" class="form-control" placeholder="Để trống nếu là khách lẻ" /><span asp-validation-for="CustomerName" class="text-danger small"></span></div>
                             <div class="col-md-6 mb-3"><label asp-for="CustomerPhone" class="form-label fw-semibold"></label><input asp-for="CustomerPhone" class="form-control" placeholder="Số điện thoại (không bắt buộc)" /><span asp-validation-for="CustomerPhone" class="text-danger small"></span></div>
                         </div>
+                        <label class="form-check-label mb-3"><input asp-for="SaveCustomer" class="form-check-input" /> Lưu khách mới vào hồ sơ</label>
                         <div><label asp-for="Note" class="form-label fw-semibold"></label><textarea asp-for="Note" class="form-control" rows="3" placeholder="Ghi chú cho đơn hàng"></textarea><span asp-validation-for="Note" class="text-danger small"></span></div>
                     </div>
                 </div>
@@ -68,7 +70,7 @@
                             <div class="order-grand-total"><span>Khách cần trả</span><strong id="orderTotal">0 ₫</strong></div>
                         </div>
                         <div class="mb-3"><label asp-for="PaymentMethod" class="form-label fw-semibold"></label><select asp-for="PaymentMethod" class="form-select"><option value="@PaymentMethod.Cash">Tiền mặt</option><option value="@PaymentMethod.BankTransfer">Chuyển khoản</option><option value="@PaymentMethod.Card">Thẻ</option></select></div>
-                        <label class="payment-check"><input asp-for="IsPaid" class="form-check-input" /><span><strong>Đã nhận thanh toán</strong><small>Đánh dấu đơn là đã thanh toán</small></span></label>
+                        <p class="text-muted small">Đơn mới chưa thanh toán. Sau khi hoàn tất, nhân viên ghi nhận đã nhận đủ tiền riêng.</p>
                         <button class="btn btn-primary w-100 py-2 mt-4" type="submit">Xác nhận và tạo đơn</button>
                         <p class="order-submit-note">Tồn kho sẽ được trừ ngay sau khi tạo đơn thành công.</p>
                     </div>

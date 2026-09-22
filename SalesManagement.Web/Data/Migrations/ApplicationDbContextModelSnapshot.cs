@@ -49,6 +49,41 @@ namespace SalesManagement.Web.Data.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("SalesManagement.Web.Models.Customer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId", "Name");
+
+                    b.ToTable("Customers");
+                });
+
             modelBuilder.Entity("SalesManagement.Web.Models.InventoryItem", b =>
                 {
                     b.Property<int>("Id")
@@ -158,6 +193,9 @@ namespace SalesManagement.Web.Data.Migrations
                     b.Property<int?>("CreatedByUserId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int");
+
                     b.Property<string>("CustomerName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -207,6 +245,8 @@ namespace SalesManagement.Web.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("StoreId", "Code")
                         .IsUnique();
@@ -463,6 +503,17 @@ namespace SalesManagement.Web.Data.Migrations
                     b.Navigation("Store");
                 });
 
+            modelBuilder.Entity("SalesManagement.Web.Models.Customer", b =>
+                {
+                    b.HasOne("SalesManagement.Web.Models.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Store");
+                });
+
             modelBuilder.Entity("SalesManagement.Web.Models.InventoryItem", b =>
                 {
                     b.HasOne("SalesManagement.Web.Models.Product", "Product")
@@ -522,6 +573,11 @@ namespace SalesManagement.Web.Data.Migrations
                         .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("SalesManagement.Web.Models.Customer", "Customer")
+                        .WithMany("Orders")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("SalesManagement.Web.Models.Store", "Store")
                         .WithMany("Orders")
                         .HasForeignKey("StoreId")
@@ -529,6 +585,8 @@ namespace SalesManagement.Web.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("CreatedByUser");
+
+                    b.Navigation("Customer");
 
                     b.Navigation("Store");
                 });
@@ -592,6 +650,11 @@ namespace SalesManagement.Web.Data.Migrations
             modelBuilder.Entity("SalesManagement.Web.Models.Category", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("SalesManagement.Web.Models.Customer", b =>
+                {
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("SalesManagement.Web.Models.Order", b =>

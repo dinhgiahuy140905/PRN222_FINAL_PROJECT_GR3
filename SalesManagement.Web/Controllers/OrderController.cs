@@ -99,6 +99,16 @@ namespace SalesManagement.Web.Controllers
                 ModelState.AddModelError(nameof(model.Items), "Mỗi sản phẩm chỉ nên xuất hiện một lần trong đơn.");
             }
 
+            Customer? selectedCustomer = null;
+            if (model.CustomerId is int customerId)
+            {
+                selectedCustomer = await _context.Customers.SingleOrDefaultAsync(
+                    customer => customer.Id == customerId && customer.StoreId == storeId);
+                if (selectedCustomer is null) ModelState.AddModelError(nameof(model.CustomerId), "Khách hàng không thuộc cửa hàng hiện tại.");
+            }
+            if (model.SaveCustomer && model.CustomerId is null && string.IsNullOrWhiteSpace(model.CustomerName))
+                ModelState.AddModelError(nameof(model.CustomerName), "Nhập tên để lưu hồ sơ khách hàng.");
+
             var productIds = validInputs.Select(item => item.ProductId).Distinct().ToList();
             var products = await _context.Products
                 .Include(product => product.Inventory)
@@ -144,12 +154,11 @@ namespace SalesManagement.Web.Controllers
                 StoreId = storeId,
                 CreatedByUserId = _currentStore.UserId,
                 Code = GenerateOrderCode(),
-                CustomerName = string.IsNullOrWhiteSpace(model.CustomerName)
-                    ? "Khách lẻ"
-                    : model.CustomerName.Trim(),
-                CustomerPhone = NormalizeOptional(model.CustomerPhone),
+                CustomerName = selectedCustomer?.Name ?? (string.IsNullOrWhiteSpace(model.CustomerName) ? "Khách lẻ" : model.CustomerName.Trim()),
+                CustomerId = selectedCustomer?.Id,
+                CustomerPhone = selectedCustomer?.Phone ?? NormalizeOptional(model.CustomerPhone),
                 Status = OrderStatus.Confirmed,
-                PaymentStatus = model.IsPaid ? PaymentStatus.Paid : PaymentStatus.Unpaid,
+                PaymentStatus = PaymentStatus.Unpaid,
                 PaymentMethod = model.PaymentMethod,
                 Subtotal = subtotal,
                 Discount = model.Discount,
@@ -158,6 +167,12 @@ namespace SalesManagement.Web.Controllers
             };
 
             await using var databaseTransaction = await _context.Database.BeginTransactionAsync();
+            if (model.SaveCustomer && selectedCustomer is null)
+            {
+                var customer = new Customer { StoreId = storeId, Name = model.CustomerName!.Trim(), Phone = NormalizeOptional(model.CustomerPhone) };
+                _context.Customers.Add(customer);
+                order.Customer = customer;
+            }
             foreach (var input in validInputs)
             {
                 var product = products[input.ProductId];
@@ -271,12 +286,19 @@ namespace SalesManagement.Web.Controllers
                 return RedirectToAction(nameof(Details), new { id });
             }
 
-            order.Status = OrderStatus.Completed;
-            order.PaymentStatus = PaymentStatus.Paid;
-            order.CompletedAt = DateTime.Now;
-            order.UpdatedAt = DateTime.Now;
-            await _context.SaveChangesAsync();
-            TempData["Success"] = $"Đơn {order.Code} đã hoàn thành và được đánh dấu đã thanh toán.";
+            var now = DateTime.Now;
+            var changed = await _context.Orders
+                .Where(x => x.Id == id && x.StoreId == storeId && x.Status == OrderStatus.Confirmed)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.Status, OrderStatus.Completed)
+                    .SetProperty(x => x.CompletedAt, now)
+                    .SetProperty(x => x.UpdatedAt, now));
+            if (changed == 0)
+            {
+                TempData["Error"] = "Đơn đã được xử lý bởi yêu cầu khác.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            TempData["Success"] = $"Đơn {order.Code} đã hoàn thành. Thanh toán cần được ghi nhận riêng.";
             return RedirectToAction(nameof(Details), new { id });
         }
 
@@ -300,13 +322,24 @@ namespace SalesManagement.Web.Controllers
                 return NotFound();
             }
 
-            if (order.Status != OrderStatus.Confirmed)
+            if (order.Status == OrderStatus.Cancelled || order.PaymentStatus == PaymentStatus.Paid)
             {
-                TempData["Error"] = "Chỉ đơn đang xử lý mới có thể hủy.";
+                TempData["Error"] = "Đơn đã hủy hoặc chưa hoàn tiền không thể hủy thêm.";
                 return RedirectToAction(nameof(Details), new { id });
             }
 
             await using var databaseTransaction = await _context.Database.BeginTransactionAsync();
+            var changed = await _context.Orders
+                .Where(x => x.Id == id && x.StoreId == storeId && x.Status != OrderStatus.Cancelled && x.PaymentStatus != PaymentStatus.Paid)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.Status, OrderStatus.Cancelled)
+                    .SetProperty(x => x.UpdatedAt, DateTime.Now));
+            if (changed == 0)
+            {
+                await databaseTransaction.RollbackAsync();
+                TempData["Error"] = "Đơn đã được xử lý bởi yêu cầu khác.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
             foreach (var item in order.Items)
             {
                 item.Product.Inventory.Quantity += item.Quantity;
@@ -321,12 +354,6 @@ namespace SalesManagement.Web.Controllers
                     Note = $"Hoàn kho do hủy đơn {order.Code}"
                 });
             }
-
-            order.Status = OrderStatus.Cancelled;
-            order.PaymentStatus = order.PaymentStatus == PaymentStatus.Paid
-                ? PaymentStatus.Refunded
-                : PaymentStatus.Unpaid;
-            order.UpdatedAt = DateTime.Now;
 
             try
             {
@@ -344,6 +371,60 @@ namespace SalesManagement.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecordPayment(int id)
+        {
+            var storeId = await GetStoreIdAsync();
+            if (storeId is null) return RedirectToAction("Select", "Store");
+            var order = await _context.Orders.SingleOrDefaultAsync(x => x.Id == id && x.StoreId == storeId);
+            if (order is null) return NotFound();
+            if (order.Status != OrderStatus.Completed || order.PaymentStatus != PaymentStatus.Unpaid)
+            {
+                TempData["Error"] = "Chỉ ghi nhận tiền một lần cho đơn hoàn tất chưa thanh toán.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            var changed = await _context.Orders
+                .Where(x => x.Id == id && x.StoreId == storeId && x.Status == OrderStatus.Completed && x.PaymentStatus == PaymentStatus.Unpaid)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.PaymentStatus, PaymentStatus.Paid)
+                    .SetProperty(x => x.UpdatedAt, DateTime.Now));
+            if (changed == 0)
+            {
+                TempData["Error"] = "Đơn đã được xử lý bởi yêu cầu khác.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            TempData["Success"] = "Đã ghi nhận đủ tiền thủ công.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecordRefund(int id)
+        {
+            var storeId = await GetStoreIdAsync();
+            if (storeId is null) return RedirectToAction("Select", "Store");
+            var order = await _context.Orders.SingleOrDefaultAsync(x => x.Id == id && x.StoreId == storeId);
+            if (order is null) return NotFound();
+            if (order.PaymentStatus != PaymentStatus.Paid)
+            {
+                TempData["Error"] = "Chỉ ghi nhận hoàn tiền một lần cho đơn đã thanh toán.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            var changed = await _context.Orders
+                .Where(x => x.Id == id && x.StoreId == storeId && x.PaymentStatus == PaymentStatus.Paid)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.PaymentStatus, PaymentStatus.Refunded)
+                    .SetProperty(x => x.UpdatedAt, DateTime.Now));
+            if (changed == 0)
+            {
+                TempData["Error"] = "Đơn đã được xử lý bởi yêu cầu khác.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            TempData["Success"] = "Đã ghi nhận hoàn đủ tiền thủ công.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
         private async Task<int?> GetStoreIdAsync()
         {
             return (await _currentStore.GetMembershipAsync())?.StoreId;
@@ -351,6 +432,8 @@ namespace SalesManagement.Web.Controllers
 
         private async Task LoadProductsAsync(CreateOrderViewModel model, int storeId)
         {
+            model.Customers = await _context.Customers.AsNoTracking()
+                .Where(customer => customer.StoreId == storeId).OrderBy(customer => customer.Name).ToListAsync();
             model.Products = await _context.Products
                 .AsNoTracking()
                 .Where(product => product.StoreId == storeId && product.IsActive)

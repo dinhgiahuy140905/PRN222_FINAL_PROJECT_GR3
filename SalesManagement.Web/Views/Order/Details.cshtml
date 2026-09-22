@@ -21,11 +21,15 @@
         <div><a class="detail-back" asp-action="Index">← Danh sách đơn hàng</a><h1>@Model.Code</h1><p>Tạo lúc @Model.CreatedAt.ToString("HH:mm, dd/MM/yyyy") bởi @(Model.CreatedByUser?.FullName ?? "Người dùng đã xóa")</p></div>
         <div class="order-detail-actions">
             <a class="btn btn-light-primary" asp-action="Invoice" asp-route-id="@Model.Id">Xem hóa đơn</a>
-            @if (Model.Status == OrderStatus.Confirmed)
+            @if (Model.Status != OrderStatus.Cancelled)
             {
-                <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" onsubmit="return window.confirm(&quot;Hủy đơn và hoàn lại toàn bộ tồn kho?&quot;)"><button class="btn btn-outline-danger" type="submit">Hủy đơn</button></form>
-                <form asp-action="Complete" asp-route-id="@Model.Id" method="post" onsubmit="return window.confirm(&quot;Hoàn thành đơn và đánh dấu đã thanh toán?&quot;)"><button class="btn btn-primary" type="submit">Hoàn thành &amp; thanh toán</button></form>
+                @if (Model.PaymentStatus != PaymentStatus.Paid) { <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" onsubmit="return window.confirm(&quot;Hủy đơn và hoàn lại toàn bộ tồn kho?&quot;)"><button class="btn btn-outline-danger" type="submit">Hủy đơn</button></form> }
+                @if (Model.Status == OrderStatus.Confirmed) { <form asp-action="Complete" asp-route-id="@Model.Id" method="post" onsubmit="return window.confirm(&quot;Hoàn thành đơn? Thanh toán sẽ được ghi nhận riêng.&quot;)"><button class="btn btn-primary" type="submit">Hoàn thành đơn</button></form> }
             }
+            @if (Model.Status == OrderStatus.Completed && Model.PaymentStatus == PaymentStatus.Unpaid)
+            { <form asp-action="RecordPayment" asp-route-id="@Model.Id" method="post"><button class="btn btn-success" type="submit">Ghi nhận đã nhận đủ tiền</button></form> }
+            @if (Model.PaymentStatus == PaymentStatus.Paid)
+            { <form asp-action="RecordRefund" asp-route-id="@Model.Id" method="post" onsubmit="return window.confirm(&quot;Xác nhận đã hoàn đủ tiền cho khách?&quot;)"><button class="btn btn-outline-warning" type="submit">Ghi nhận đã hoàn tiền</button></form> }
         </div>
     </div>
 
@@ -42,7 +46,7 @@
         </div>
         <div class="col-xl-4">
             <div class="content-card mb-4"><span class="eyebrow">Khách hàng</span><h2>@Model.CustomerName</h2><div class="detail-info-list"><div><span>Số điện thoại</span><strong>@(Model.CustomerPhone ?? "Chưa cung cấp")</strong></div><div><span>Ghi chú</span><strong>@(Model.Note ?? "Không có")</strong></div></div></div>
-            <div class="content-card"><span class="eyebrow">Thanh toán</span><h2>Thông tin thanh toán</h2><div class="detail-info-list"><div><span>Phương thức</span><strong>@PaymentMethodText(Model.PaymentMethod)</strong></div><div><span>Trạng thái</span><strong class="@(Model.PaymentStatus == PaymentStatus.Paid ? "text-success" : Model.PaymentStatus == PaymentStatus.Refunded ? "text-secondary" : "text-warning")">@(Model.PaymentStatus == PaymentStatus.Paid ? "Đã thanh toán" : Model.PaymentStatus == PaymentStatus.Refunded ? "Đã hoàn tiền" : "Chưa thanh toán")</strong></div></div></div>
+            <div class="content-card"><span class="eyebrow">Thanh toán</span><h2>Thông tin thanh toán</h2><p class="text-muted small">Các xác nhận mới do nhân viên ghi nhận thủ công, không qua cổng thanh toán.</p><div class="detail-info-list"><div><span>Phương thức</span><strong>@PaymentMethodText(Model.PaymentMethod)</strong></div><div><span>Trạng thái</span><strong class="@(Model.PaymentStatus == PaymentStatus.Paid ? "text-success" : Model.PaymentStatus == PaymentStatus.Refunded ? "text-secondary" : "text-warning")">@(Model.PaymentStatus == PaymentStatus.Paid ? "Đã thanh toán" : Model.PaymentStatus == PaymentStatus.Refunded ? "Đã hoàn tiền" : "Chưa thanh toán")</strong></div></div></div>
         </div>
     </div>
 </section>

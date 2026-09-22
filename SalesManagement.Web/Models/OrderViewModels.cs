@@ -4,6 +4,10 @@ namespace SalesManagement.Web.Models
 {
     public class CreateOrderViewModel
     {
+        public int? CustomerId { get; set; }
+        public bool SaveCustomer { get; set; }
+        public IReadOnlyList<Customer> Customers { get; set; } = Array.Empty<Customer>();
+
         [StringLength(100)]
         [Display(Name = "Tên khách hàng")]
         public string? CustomerName { get; set; }
@@ -19,9 +23,6 @@ namespace SalesManagement.Web.Models
 
         [Display(Name = "Phương thức thanh toán")]
         public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
-
-        [Display(Name = "Đã thanh toán")]
-        public bool IsPaid { get; set; }
 
         [StringLength(500)]
         [Display(Name = "Ghi chú")]

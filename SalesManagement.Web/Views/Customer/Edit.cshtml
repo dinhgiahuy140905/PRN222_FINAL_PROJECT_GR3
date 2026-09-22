@@ -1,0 +1,12 @@
+@model Customer
+@{ var isNew = Model.Id == 0; ViewData["Title"] = isNew ? "Thêm khách hàng" : "Sửa khách hàng"; }
+<section>
+    <div class="module-heading"><div><a class="detail-back" asp-action="Index">← Khách hàng</a><h1>@ViewData["Title"]</h1></div></div>
+    <form asp-action="@(isNew ? "Create" : "Edit")" asp-route-id="@(isNew ? null : Model.Id)" method="post" class="content-card">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="row"><div class="col-md-6 mb-3"><label asp-for="Name" class="form-label">Tên khách hàng</label><input asp-for="Name" class="form-control" /><span asp-validation-for="Name" class="text-danger"></span></div><div class="col-md-6 mb-3"><label asp-for="Phone" class="form-label">Số điện thoại</label><input asp-for="Phone" class="form-control" /><span asp-validation-for="Phone" class="text-danger"></span></div></div>
+        <div class="mb-3"><label asp-for="Email" class="form-label">Email</label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email" class="text-danger"></span></div>
+        <div class="mb-3"><label asp-for="Note" class="form-label">Ghi chú</label><textarea asp-for="Note" class="form-control" rows="3"></textarea><span asp-validation-for="Note" class="text-danger"></span></div>
+        <button class="btn btn-primary" type="submit">Lưu khách hàng</button>
+    </form>
+</section>
