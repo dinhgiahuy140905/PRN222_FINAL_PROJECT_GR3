@@ -1,4 +1,9 @@
 using System.Net;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Options;
+using SalesManagement.Web.Services;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -229,6 +234,111 @@ public sealed class SalesHubFlowTests
         var newLogin = await Post(client, "/Account/Login", "/Account/Login", new()
         { ["Email"] = "owner@test.local", ["Password"] = "NewPassword123!" });
         Assert.Equal(HttpStatusCode.Redirect, newLogin.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Password_change_revokes_other_sessions_and_preserves_current_session(bool rememberMe)
+    {
+        using var app = new SalesHubFactory();
+        var (ownerId, _, storeA, storeB, _) = app.Seed();
+        using var a = app.CreateClient(new() { AllowAutoRedirect = false, HandleCookies = true });
+        using var b = app.CreateClient(new() { AllowAutoRedirect = false, HandleCookies = true });
+        await Post(a, "/Account/Login", "/Account/Login", new()
+        {
+            ["Email"] = "owner@test.local", ["Password"] = "Password123!",
+            ["RememberMe"] = rememberMe.ToString()
+        });
+        await Login(b, "owner@test.local");
+        // Preserve the selected store, even when it differs from the default store.
+        await Post(a, "/Store/Switch", "/Store/Select", new() { ["storeId"] = storeB.ToString() });
+        var original = ReadDb(app, db => db.Users.Where(u => u.Id == ownerId)
+            .Select(u => new { u.PasswordHash, u.SessionVersion, u.PasswordChangedAt }).Single());
+        var fields = new Dictionary<string, string>
+        {
+            ["Security.CurrentPassword"] = "wrong-password",
+            ["Security.NewPassword"] = "NewPassword123!",
+            ["Security.ConfirmPassword"] = "NewPassword123!"
+        };
+        Assert.Equal(HttpStatusCode.OK,
+            (await Post(a, "/Settings/ChangePassword", "/Settings/Index?section=security", fields)).StatusCode);
+        Assert.Equal(original, ReadDb(app, db => db.Users.Where(u => u.Id == ownerId)
+            .Select(u => new { u.PasswordHash, u.SessionVersion, u.PasswordChangedAt }).Single()));
+        Assert.Equal(HttpStatusCode.OK, (await b.GetAsync("/Settings/Index")).StatusCode);
+
+        fields["Security.CurrentPassword"] = "Password123!";
+        var changed = await Post(a, "/Settings/ChangePassword", "/Settings/Index?section=security", fields);
+        Assert.Equal(HttpStatusCode.Redirect, changed.StatusCode);
+        var ticket = ReadAuthTicket(app, changed);
+        Assert.Equal(rememberMe, ticket.Properties.IsPersistent);
+        Assert.Equal(storeB.ToString(), ticket.Principal.FindFirstValue(StoreClaimTypes.StoreId));
+        Assert.Equal(StoreRole.Owner.ToString(), ticket.Principal.FindFirstValue(StoreClaimTypes.StoreRole));
+        Assert.Equal((original.SessionVersion + 1).ToString(), ticket.Principal.FindFirstValue(StoreClaimTypes.SessionVersion));
+        Assert.NotEqual(original.PasswordHash, ReadDb(app, db => db.Users.Single(u => u.Id == ownerId).PasswordHash));
+        Assert.Equal(HttpStatusCode.OK, (await a.GetAsync("/Settings/Index")).StatusCode);
+
+        var rejected = await b.GetAsync("/Settings/Index");
+        Assert.Equal(HttpStatusCode.Redirect, rejected.StatusCode);
+        Assert.Contains("/Account/Login", rejected.Headers.Location!.ToString());
+        Assert.Contains(rejected.Headers.GetValues("Set-Cookie"), value => value.Contains("expires=Thu, 01 Jan 1970"));
+        Assert.Equal(HttpStatusCode.OK, (await b.GetAsync("/Account/Login")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await Post(b, "/Account/Login", "/Account/Login", new()
+        { ["Email"] = "owner@test.local", ["Password"] = "Password123!" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, (await Post(b, "/Account/Login", "/Account/Login", new()
+        { ["Email"] = "owner@test.local", ["Password"] = "NewPassword123!" })).StatusCode);
+    }
+
+    [Theory]
+    [InlineData("missing-version")]
+    [InlineData("invalid-version")]
+    [InlineData("missing-user")]
+    public async Task Invalid_or_legacy_sessions_are_rejected_without_server_errors(string scenario)
+    {
+        using var app = new SalesHubFactory();
+        app.Seed();
+        using var loginClient = app.CreateClient(new() { AllowAutoRedirect = false, HandleCookies = true });
+        var login = await Post(loginClient, "/Account/Login", "/Account/Login", new()
+        { ["Email"] = "owner@test.local", ["Password"] = "Password123!" });
+        var ticket = ReadAuthTicket(app, login);
+        var identity = (ClaimsIdentity)ticket.Principal.Identity!;
+        if (scenario == "missing-user")
+        {
+            // A real, valid cookie for a user subsequently deleted from the database.
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var user = new User { FullName = "Deleted", Email = "deleted@test.local" };
+            db.Users.Add(user);
+            db.SaveChanges();
+            identity.RemoveClaim(identity.FindFirst(ClaimTypes.NameIdentifier)!);
+            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+            db.Users.Remove(user);
+            db.SaveChanges();
+        }
+        else
+        {
+            identity.RemoveClaim(identity.FindFirst(StoreClaimTypes.SessionVersion)!);
+            if (scenario == "invalid-version")
+                identity.AddClaim(new Claim(StoreClaimTypes.SessionVersion, "invalid"));
+        }
+        var options = app.Services.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>()
+            .Get(CookieAuthenticationDefaults.AuthenticationScheme);
+        using var client = app.CreateClient(new() { AllowAutoRedirect = false, HandleCookies = false });
+        client.DefaultRequestHeaders.Add("Cookie", options.Cookie.Name + "=" + options.TicketDataFormat.Protect(ticket));
+        var response = await client.GetAsync("/Settings/Index");
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Contains("/Account/Login", response.Headers.Location!.ToString());
+        Assert.Contains(response.Headers.GetValues("Set-Cookie"), value => value.Contains("expires=Thu, 01 Jan 1970"));
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/Account/Login")).StatusCode);
+    }
+
+    private static AuthenticationTicket ReadAuthTicket(SalesHubFactory app, HttpResponseMessage response)
+    {
+        var options = app.Services.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>()
+            .Get(CookieAuthenticationDefaults.AuthenticationScheme);
+        var cookie = response.Headers.GetValues("Set-Cookie")
+            .Single(value => value.StartsWith(options.Cookie.Name + "="));
+        return options.TicketDataFormat.Unprotect(cookie.Split(';')[0][(options.Cookie.Name!.Length + 1)..])!;
     }
 
     private static T ReadDb<T>(SalesHubFactory app, Func<ApplicationDbContext, T> read)
