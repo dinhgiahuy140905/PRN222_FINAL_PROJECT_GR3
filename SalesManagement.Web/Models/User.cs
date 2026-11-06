@@ -14,6 +14,8 @@
 
         public string PasswordHash { get; set; } = string.Empty;
 
+        public int SessionVersion { get; set; }
+
         public AccountType AccountType { get; set; } = AccountType.Owner;
 
         public int? DefaultStoreId { get; set; }
