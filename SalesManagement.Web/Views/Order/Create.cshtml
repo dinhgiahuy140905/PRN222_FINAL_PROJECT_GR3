@@ -89,9 +89,14 @@
         const addButton = document.getElementById("addOrderItem");
         const discountInput = document.getElementById("Discount");
         const currency = value => new Intl.NumberFormat("vi-VN").format(Math.max(0, value || 0)) + " ₫";
-        const options = () => products.map(product =>
-            `<option value="${product.Id}">${product.Name} · ${product.Sku} (còn ${product.Stock})</option>`
-        ).join("");
+        const appendProductOptions = select => {
+            products.forEach(product => {
+                const option = document.createElement("option");
+                option.value = String(product.Id);
+                option.textContent = `${product.Name} · ${product.Sku} (còn ${product.Stock})`;
+                select.appendChild(option);
+            });
+        };
 
         const reindex = () => {
             container?.querySelectorAll(".order-item-row").forEach((row, index) => {
@@ -130,7 +135,8 @@
         addButton?.addEventListener("click", () => {
             const row = document.createElement("div");
             row.className = "order-item-row";
-            row.innerHTML = `<select class="form-select product-select" required><option value="">Chọn sản phẩm</option>${options()}</select><input class="form-control quantity-input" type="number" min="1" value="1" required /><span class="item-price">0 ₫</span><strong class="item-total">0 ₫</strong><button class="remove-order-item" type="button" aria-label="Xóa dòng">×</button>`;
+            row.innerHTML = `<select class="form-select product-select" required><option value="">Chọn sản phẩm</option></select><input class="form-control quantity-input" type="number" min="1" value="1" required /><span class="item-price">0 ₫</span><strong class="item-total">0 ₫</strong><button class="remove-order-item" type="button" aria-label="Xóa dòng">×</button>`;
+            appendProductOptions(row.querySelector(".product-select"));
             container.appendChild(row);
             bindRow(row);
             reindex();
