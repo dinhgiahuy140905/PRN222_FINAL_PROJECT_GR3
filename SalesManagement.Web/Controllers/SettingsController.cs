@@ -194,7 +194,9 @@ namespace SalesManagement.Web.Controllers
 
             user.PasswordHash = _passwordHasher.HashPassword(user, model.NewPassword);
             user.PasswordChangedAt = DateTime.Now;
+            user.SessionVersion = checked(user.SessionVersion + 1);
             await _context.SaveChangesAsync();
+            await RefreshSessionAsync(user);
             TempData["Success"] = "Đã đổi mật khẩu.";
             return RedirectToAction(nameof(Index), new { section = "security" });
         }
