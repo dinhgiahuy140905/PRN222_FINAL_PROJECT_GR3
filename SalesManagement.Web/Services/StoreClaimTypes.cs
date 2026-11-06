@@ -7,5 +7,6 @@ namespace SalesManagement.Web.Services
         public const string StoreRole = "saleshub:store_role";
         public const string AvatarPath = "saleshub:avatar_path";
         public const string AccountType = "saleshub:account_type";
+        public const string SessionVersion = "saleshub:session_version";
     }
 }
