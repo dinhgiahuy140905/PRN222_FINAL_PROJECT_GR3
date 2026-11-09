@@ -117,7 +117,10 @@ namespace SalesManagement.Web.Data.Migrations
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("InventoryItems");
+                    b.ToTable("InventoryItems", t =>
+                        {
+                            t.HasCheckConstraint("CK_InventoryItems_Quantity_Nonnegative", "[Quantity] >= 0");
+                        });
                 });
 
             modelBuilder.Entity("SalesManagement.Web.Models.InventoryTransaction", b =>
@@ -192,6 +195,11 @@ namespace SalesManagement.Web.Data.Migrations
 
                     b.Property<int?>("CreatedByUserId")
                         .HasColumnType("int");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<int?>("CustomerId")
                         .HasColumnType("int");
