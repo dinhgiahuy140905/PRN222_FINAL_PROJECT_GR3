@@ -148,6 +148,8 @@
                                     <option value="USD">USD — US Dollar</option>
                                     <option value="EUR">EUR — Euro</option>
                                 </select>
+                                <span asp-validation-for="Store.CurrencyCode" class="text-danger small"></span>
+                                <small class="text-muted">Chỉ đổi tiền tệ khi cửa hàng chưa có sản phẩm và đơn hàng.</small>
                             </div>
                             <div class="settings-field-wide">
                                 <label asp-for="Store.InvoiceFooter" class="form-label"></label>
@@ -208,8 +210,8 @@
                             <label class="form-label" for="preferenceLanguage">Ngôn ngữ</label>
                             <select class="form-select" id="preferenceLanguage" data-display-preference="language">
                                 <option value="vi">Tiếng Việt</option>
-                                <option value="en">English</option>
                             </select>
+                            <small class="field-help">Hiện hỗ trợ giao diện Tiếng Việt.</small>
                         </div>
                         <div>
                             <label class="form-label" for="preferenceDate">Định dạng ngày</label>
@@ -270,7 +272,7 @@
                     </div>
                     <div class="password-meta">
                         <span>Lần đổi mật khẩu gần nhất</span>
-                        <strong>@(Model.Security.PasswordChangedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa có thông tin")</strong>
+                        <strong>@(Model.Security.PasswordChangedAt is DateTime changed ? DisplayFormatter.Date(changed) : "Chưa có thông tin")</strong>
                     </div>
                     <div class="settings-actions"><button class="btn btn-primary" type="submit">Đổi mật khẩu</button></div>
                 </form>
@@ -301,11 +303,13 @@
 
             document.querySelectorAll("[data-display-preference]").forEach(select => {
                 const key = "saleshub-" + select.dataset.displayPreference;
-                select.value = localStorage.getItem(key) || select.value;
+                const saved = localStorage.getItem(key);
+                if ([...select.options].some(option => option.value === saved)) select.value = saved;
             });
             document.getElementById("preferencesForm")?.addEventListener("submit", () => {
                 document.querySelectorAll("[data-display-preference]").forEach(select =>
                     localStorage.setItem("saleshub-" + select.dataset.displayPreference, select.value));
+                window.dispatchEvent(new Event("saleshub:displaychange"));
             });
         })();
     </script>
