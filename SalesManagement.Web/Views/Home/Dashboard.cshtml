@@ -24,7 +24,7 @@
             </span>
             <div>
                 <span class="eyebrow">Bắt đầu với SalesHub</span>
-                <h2>Thiết lập cửa hàng đầu tiên của bạn</h2>
+                <h2>@(Model.IsOwner ? "Thiết lập cửa hàng đầu tiên của bạn" : "Bắt đầu làm việc tại cửa hàng")</h2>
                 <p>Dashboard đang trống vì cửa hàng chưa có sản phẩm hay giao dịch. Dữ liệu sẽ tự động xuất hiện khi bạn bắt đầu sử dụng hệ thống.</p>
                 <a class="btn btn-primary" asp-controller="Product" asp-action="Create">Thêm sản phẩm đầu tiên <span aria-hidden="true">→</span></a>
             </div>
@@ -32,7 +32,7 @@
         <div class="setup-progress">
             <div><span>Tiến độ thiết lập</span><strong>1/4 bước</strong></div>
             <div class="setup-progress-track"><i></i></div>
-            <small>Bạn đã tạo cửa hàng thành công</small>
+            <small>Cửa hàng của bạn đã sẵn sàng</small>
         </div>
     </section>
 
@@ -54,12 +54,12 @@
             </span>
             <div><small>Bước 3</small><h3>Tạo đơn hàng</h3><p>Sẽ mở sau khi có sản phẩm.</p></div>
         </article>
-        <article class="setup-step locked">
+        <a class="setup-step" asp-controller="@(Model.IsOwner ? "Staff" : "Home")" asp-action="@(Model.IsOwner ? "Index" : "Help")">
             <span class="setup-step-icon">
                 <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4" /><path d="M2 21a7 7 0 0 1 14 0m1-10a4 4 0 0 1 0 8" /></svg>
             </span>
-            <div><small>Bước 4</small><h3>Mời đội ngũ</h3><p>Thêm thành viên và phân quyền.</p></div>
-        </article>
+            <div><small>Bước 4</small><h3>@(Model.IsOwner ? "Mời đội ngũ" : "Hướng dẫn sử dụng")</h3><p>@(Model.IsOwner ? "Thêm thành viên vào cửa hàng." : "Xem hướng dẫn công việc của nhân viên.")</p></div>
+        </a>
     </section>
 
     <section class="content-card getting-started-note">
