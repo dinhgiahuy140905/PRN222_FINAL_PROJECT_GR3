@@ -6,17 +6,31 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
+const currencyCode = process.argv[2] || 'VND';
+const numberLocale = process.argv[3] || 'vi-VN';
+const currencyDisplay = process.argv[4] || 'symbol';
+const displayScript = fs.readFileSync(path.join(__dirname, '../../SalesManagement.Web/wwwroot/js/display-format.js'), 'utf8');
+const expectedMoney = amount => new Intl.NumberFormat(numberLocale, {
+    minimumFractionDigits: currencyCode === 'VND' ? 0 : 2,
+    maximumFractionDigits: currencyCode === 'VND' ? 0 : 2
+}).format(amount) + ' ' + (currencyCode === 'VND' && currencyDisplay === 'symbol' ? '₫' : currencyCode);
+assert.ok(['VND', 'USD', 'EUR'].includes(currencyCode));
 
 const view = fs.readFileSync(path.join(__dirname, '../../SalesManagement.Web/Views/Order/Create.cshtml'), 'utf8');
 const products = [
     { Id: 1, Name: '</option></select><img src=x onerror="window.__xssTest=1">', Sku: '<>&"\'', Stock: 10, SalePrice: 100 },
     { Id: 2, Name: 'Product <>&"\'', Sku: '</option></select><img src=x onerror="window.__xssTest=1">', Stock: 20, SalePrice: 50 }
 ];
+if (currencyCode !== 'VND') {
+    products[0].SalePrice = 100.1;
+    products[1].SalePrice = 50.25;
+}
 const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const label = product => `${product.Name} · ${product.Sku} (còn ${product.Stock})`;
 // Model the initial Razor-encoded row; run the actual view JavaScript unchanged.
 const options = products.map(p => `<option value="${p.Id}">${escape(label(p))}</option>`).join('');
 const script = view.match(/<script>([\s\S]*?)<\/script>/)[1]
+    .replace('@Html.Raw(JsonSerializer.Serialize(Model.CurrencyCode))', JSON.stringify(currencyCode))
     .replace('@Html.Raw(productsJson)', JSON.stringify(products).replace(/</g, '\\u003c'));
 const checks = `
     const check = (condition, message) => { if (!condition) throw new Error(message); };
@@ -45,8 +59,8 @@ const checks = `
         const discount = document.getElementById('Discount');
         discount.value = '25';
         discount.dispatchEvent(new Event('input'));
-        check(document.getElementById('orderSubtotal').textContent === '350 ₫', 'Subtotal failed');
-        check(document.getElementById('orderTotal').textContent === '325 ₫', 'Discount failed');
+        check(document.getElementById('orderSubtotal').textContent === ${JSON.stringify(expectedMoney(currencyCode === 'VND' ? 350 : 350.95))}, 'Subtotal failed');
+        check(document.getElementById('orderTotal').textContent === ${JSON.stringify(expectedMoney(currencyCode === 'VND' ? 325 : 325.95))}, 'Discount failed');
         setTimeout(() => {
             document.getElementById('result').textContent =
                 !document.querySelector('img') && window.__xssTest !== 1 ? 'PASS' : 'FAIL: XSS';
@@ -64,7 +78,8 @@ try {
         <span class="item-price"></span><strong class="item-total"></strong>
         <button class="remove-order-item">Remove</button></div></div>
         <span id="orderSubtotal"></span><span id="orderTotal"></span><pre id="result">PENDING</pre>
-        <script>${script}</script><script>${checks}</script>`);
+        <script>localStorage.setItem('saleshub-numberFormat', ${JSON.stringify(numberLocale)});localStorage.setItem('saleshub-currencyDisplay', ${JSON.stringify(currencyDisplay)});</script>
+        <script>${displayScript}</script><script>${script}</script><script>${checks}</script>`);
     const browser = process.env.BROWSER_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
     const result = spawnSync(browser, ['--headless', '--disable-gpu', '--no-first-run',
         `--user-data-dir=${path.join(directory, 'profile')}`, '--dump-dom', '--virtual-time-budget=1000',
