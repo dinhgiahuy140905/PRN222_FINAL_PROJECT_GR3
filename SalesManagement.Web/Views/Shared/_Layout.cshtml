@@ -88,7 +88,7 @@
 
         <div class="main-content">
             <header class="topbar">
-                <div class="topbar-start"><button class="menu-toggle" id="menuToggle" type="button" aria-controls="appSidebar" aria-expanded="false" aria-label="Mở menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button><div><strong>@ViewData["Title"]</strong><span>@DateTime.Now.ToString("dd/MM/yyyy")</span></div></div>
+                <div class="topbar-start"><button class="menu-toggle" id="menuToggle" type="button" aria-controls="appSidebar" aria-expanded="false" aria-label="Mở menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button><div><strong>@ViewData["Title"]</strong><span>@DisplayFormatter.Date(DateTime.Now, false)</span></div></div>
                 <div class="topbar-actions">
                     @if (User.Identity?.IsAuthenticated == true)
                     {
@@ -125,6 +125,7 @@
 
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/preferences.js" asp-append-version="true"></script>
+    <script src="~/js/display-format.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
