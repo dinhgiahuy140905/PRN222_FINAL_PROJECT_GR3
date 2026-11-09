@@ -2,7 +2,8 @@
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
-    var currentStoreRole = (await CurrentStore.GetMembershipAsync())?.Role.ToString();
+    var currentMembership = await CurrentStore.GetMembershipAsync();
+    var currentStoreRole = currentMembership?.Role.ToString();
     var accountType = User.FindFirst(SalesManagement.Web.Services.StoreClaimTypes.AccountType)?.Value;
 }
 <!DOCTYPE html>
@@ -78,9 +79,9 @@
                 </nav>
             </div>
 
-            <a class="sidebar-help" href="#">
+            <a class="sidebar-help" asp-controller="Home" asp-action="Help">
                 <span class="help-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M9.8 9a2.4 2.4 0 1 1 3.2 2.26c-.63.28-1 .75-1 1.49V13M12 17h.01" /></svg></span>
-                <span class="help-copy"><strong>Cần hỗ trợ?</strong><small>Liên hệ đội ngũ SalesHub</small></span>
+                <span class="help-copy"><strong>Cần hỗ trợ?</strong><small>Hướng dẫn sử dụng SalesHub</small></span>
                 <svg class="help-arrow" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
             </a>
         </aside>
@@ -92,24 +93,27 @@
                 <div class="topbar-actions">
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        var storeName = User.FindFirst(SalesManagement.Web.Services.StoreClaimTypes.StoreName)?.Value;
+                        var storeName = currentMembership?.Store.Name;
                         <a class="store-switcher" asp-controller="Store" asp-action="Select" title="Chuyển cửa hàng"><span>▦</span><span><small>Cửa hàng hiện tại</small><strong>@(storeName ?? "Chưa chọn cửa hàng")</strong></span><b>⌄</b></a>
                     }
                     <button class="icon-button theme-toggle" id="themeToggle" type="button" aria-label="Chuyển giao diện" data-tooltip="Chế độ tối">
                         <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24"><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4 8.5 8.5 0 1 0 20 15.2Z" /></svg>
                         <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
                     </button>
-                    <button class="icon-button" type="button" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg><i></i></button>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        @await Component.InvokeAsync("StoreNotifications")
+                    }
                     @if (User.Identity?.IsAuthenticated == true)
                     {
                         var avatarPath = User.FindFirst(SalesManagement.Web.Services.StoreClaimTypes.AvatarPath)?.Value;
-                        <div class="user-info">
+                        <a class="user-info" asp-controller="Settings" asp-action="Index" asp-route-section="profile" aria-label="Hồ sơ cá nhân">
                             <span class="avatar">
                                 @if (!string.IsNullOrWhiteSpace(avatarPath)) { <img src="@avatarPath" alt="" /> }
                                 else { @User.Identity.Name?.Substring(0, 1).ToUpper() }
                             </span>
                             <span><strong>@User.Identity.Name</strong><small>@(currentStoreRole == "Owner" ? "Chủ sở hữu" : currentStoreRole == "Staff" ? "Nhân viên" : accountType == "Owner" ? "Chủ cửa hàng" : "Chờ tham gia cửa hàng")</small></span>
-                        </div>
+                        </a>
                         <form asp-controller="Account" asp-action="Logout" method="post"><button class="logout-button" type="submit">Đăng xuất</button></form>
                     }
                     else
