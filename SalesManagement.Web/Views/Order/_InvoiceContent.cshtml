@@ -1,8 +1,7 @@
 @model Order
 @{
     var isCancelled = Model.Status == OrderStatus.Cancelled;
-    var currencyLabel = Model.Store.CurrencyCode == "VND" ? "₫" : Model.Store.CurrencyCode;
-    string Money(decimal value) => $"{value:N0} {currencyLabel}";
+    Microsoft.AspNetCore.Html.IHtmlContent Money(decimal value) => MoneyFormatter.Render(value, Model.CurrencyCode);
     string StatusText(OrderStatus status) => status switch
     {
         OrderStatus.Confirmed => "Đang xử lý",
@@ -44,7 +43,7 @@
         <div class="invoice-identity">
             <span>INVOICE</span>
             <strong>#@Model.Code</strong>
-            <time>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</time>
+            <time>@DisplayFormatter.Date(Model.CreatedAt, true)</time>
             <em class="invoice-order-status @(Model.Status == OrderStatus.Completed ? "completed" : isCancelled ? "cancelled" : null)">
                 @StatusText(Model.Status)
             </em>
@@ -76,7 +75,7 @@
                     <tr>
                         <td>@(index + 1)</td>
                         <td><strong>@item.ProductName</strong></td>
-                        <td>@item.Quantity</td>
+                        <td>@DisplayFormatter.Number(item.Quantity)</td>
                         <td>@Money(item.UnitPrice)</td>
                         <td>—</td>
                         <td><strong>@Money(item.LineTotal)</strong></td>
