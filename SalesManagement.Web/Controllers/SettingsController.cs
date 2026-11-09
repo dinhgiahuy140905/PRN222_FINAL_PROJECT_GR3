@@ -109,6 +109,15 @@ namespace SalesManagement.Web.Controllers
                 return NotFound();
             }
 
+            if (store.CurrencyCode != model.CurrencyCode &&
+                (await _context.Products.AnyAsync(product => product.StoreId == store.Id) ||
+                 await _context.Orders.AnyAsync(order => order.StoreId == store.Id)))
+            {
+                ModelState.AddModelError("Store.CurrencyCode",
+                    "Không thể đổi tiền tệ khi cửa hàng đã có sản phẩm hoặc đơn hàng.");
+                return View("Index", await BuildPageAsync("store", store: model));
+            }
+
             var logoPath = await SaveImageAsync(model.Logo, "stores", "Store.Logo");
             if (!ModelState.IsValid)
             {
