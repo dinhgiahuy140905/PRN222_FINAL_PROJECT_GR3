@@ -1,7 +1,10 @@
+@inject ICurrentStoreContext CurrentStore
+@{ var currencyCode = (await CurrentStore.GetMembershipAsync())!.Store.CurrencyCode; }
 @model ProductFormViewModel
 
 <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 <input asp-for="Id" type="hidden" />
+<p class="text-muted small">Khi nhập giá có phần lẻ, dùng dấu chấm, ví dụ 12.50. Tùy chọn hiển thị chỉ thay đổi cách xem số tiền.</p>
 <div class="row">
     <div class="col-md-8 mb-3"><label asp-for="Name" class="form-label fw-semibold"></label><input asp-for="Name" class="form-control" placeholder="Tên sản phẩm" autofocus /><span asp-validation-for="Name" class="text-danger small"></span></div>
     <div class="col-md-4 mb-3"><label asp-for="Sku" class="form-label fw-semibold"></label><input asp-for="Sku" class="form-control text-uppercase" placeholder="SP-001" /><span asp-validation-for="Sku" class="text-danger small"></span></div>
@@ -12,8 +15,8 @@
     <div class="col-md-3 mb-3"><label asp-for="Unit" class="form-label fw-semibold"></label><input asp-for="Unit" class="form-control" /><span asp-validation-for="Unit" class="text-danger small"></span></div>
 </div>
 <div class="row">
-    <div class="col-md-6 mb-3"><label asp-for="CostPrice" class="form-label fw-semibold"></label><div class="input-group"><input asp-for="CostPrice" class="form-control" /><span class="input-group-text">₫</span></div><span asp-validation-for="CostPrice" class="text-danger small"></span></div>
-    <div class="col-md-6 mb-3"><label asp-for="SalePrice" class="form-label fw-semibold"></label><div class="input-group"><input asp-for="SalePrice" class="form-control" /><span class="input-group-text">₫</span></div><span asp-validation-for="SalePrice" class="text-danger small"></span></div>
+    <div class="col-md-6 mb-3"><label asp-for="CostPrice" class="form-label fw-semibold"></label><div class="input-group"><input asp-for="CostPrice" class="form-control" /><span class="input-group-text">@MoneyFormatter.Label(currencyCode)</span></div><span asp-validation-for="CostPrice" class="text-danger small"></span></div>
+    <div class="col-md-6 mb-3"><label asp-for="SalePrice" class="form-label fw-semibold"></label><div class="input-group"><input asp-for="SalePrice" class="form-control" /><span class="input-group-text">@MoneyFormatter.Label(currencyCode)</span></div><span asp-validation-for="SalePrice" class="text-danger small"></span></div>
 </div>
 <div class="row">
     @if (Model.Id is null)
