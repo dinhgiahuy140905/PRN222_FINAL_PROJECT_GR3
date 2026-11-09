@@ -16,7 +16,7 @@ using SalesManagement.Web.Models;
 
 namespace SalesManagement.Tests;
 
-public sealed class SalesHubFlowTests
+public sealed partial class SalesHubFlowTests
 {
     [Fact]
     public async Task Order_payment_refund_cancel_and_store_scope()
@@ -50,9 +50,9 @@ public sealed class SalesHubFlowTests
         await Post(owner, $"/Order/RecordPayment/{orderId}", $"/Order/Details/{orderId}");
         await Post(owner, $"/Order/RecordPayment/{orderId}", $"/Order/Details/{orderId}");
         Assert.Equal(PaymentStatus.Paid, app.ReadOrderAndStock(orderId, productId).Item1);
-        var currentReport = await owner.GetStringAsync("/Report/Index");
+        var currentReport = WebUtility.HtmlDecode(await owner.GetStringAsync("/Report/Index"));
         Assert.Contains("200 ₫", currentReport);
-        var pastReport = await owner.GetStringAsync("/Report/Index?from=2000-01-01&to=2000-12-31");
+        var pastReport = WebUtility.HtmlDecode(await owner.GetStringAsync("/Report/Index?from=2000-01-01&to=2000-12-31"));
         Assert.DoesNotContain("200 ₫", pastReport);
         await Post(owner, $"/Order/Cancel/{orderId}", $"/Order/Details/{orderId}");
         Assert.Equal((PaymentStatus.Paid, 8), app.ReadOrderAndStock(orderId, productId));
