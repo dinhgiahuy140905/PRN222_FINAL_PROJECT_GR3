@@ -59,6 +59,7 @@ namespace SalesManagement.Web.Models
 
     public class OrderIndexViewModel
     {
+        public PaymentStatus? PaymentStatus { get; set; }
         public string? Search { get; set; }
         public OrderStatus? Status { get; set; }
         public IReadOnlyList<Order> Orders { get; set; } = Array.Empty<Order>();
