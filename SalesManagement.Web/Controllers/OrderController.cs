@@ -22,7 +22,7 @@ namespace SalesManagement.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? search, OrderStatus? status)
+        public async Task<IActionResult> Index(string? search, OrderStatus? status, PaymentStatus? paymentStatus)
         {
             var storeId = await GetStoreIdAsync();
             if (storeId is null)
@@ -51,9 +51,10 @@ namespace SalesManagement.Web.Controllers
 
             return View(new OrderIndexViewModel
             {
+                PaymentStatus = paymentStatus,
                 Search = search,
                 Status = status,
-                Orders = await query
+                Orders = await query.Where(order => paymentStatus == null || order.PaymentStatus == paymentStatus)
                     .OrderByDescending(order => order.CreatedAt)
                     .ToListAsync()
             });
