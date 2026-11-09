@@ -122,6 +122,7 @@ namespace SalesManagement.Web.Data
 
             modelBuilder.Entity<InventoryItem>(entity =>
             {
+                entity.ToTable(table => table.HasCheckConstraint("CK_InventoryItems_Quantity_Nonnegative", "[Quantity] >= 0"));
                 entity.HasIndex(item => item.ProductId).IsUnique();
                 if (Database.IsSqlServer())
                     entity.Property(item => item.RowVersion).IsRowVersion();
@@ -178,6 +179,7 @@ namespace SalesManagement.Web.Data
                 entity.HasOne(order => order.Customer).WithMany(customer => customer.Orders)
                     .HasForeignKey(order => order.CustomerId).OnDelete(DeleteBehavior.SetNull);
                 entity.Property(order => order.Code).HasMaxLength(30).IsRequired();
+                entity.Property(order => order.CurrencyCode).HasMaxLength(10).IsRequired();
                 entity.Property(order => order.CustomerName).HasMaxLength(100).IsRequired();
                 entity.Property(order => order.CustomerPhone).HasMaxLength(20);
                 entity.Property(order => order.Note).HasMaxLength(500);
