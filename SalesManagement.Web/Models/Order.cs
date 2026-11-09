@@ -7,6 +7,7 @@ namespace SalesManagement.Web.Models
         public int? CustomerId { get; set; }
         public int? CreatedByUserId { get; set; }
         public string Code { get; set; } = string.Empty;
+        public string CurrencyCode { get; set; } = "VND";
         public string CustomerName { get; set; } = "Khách lẻ";
         public string? CustomerPhone { get; set; }
         public OrderStatus Status { get; set; } = OrderStatus.Confirmed;
