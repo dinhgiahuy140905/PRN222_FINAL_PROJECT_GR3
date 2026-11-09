@@ -57,10 +57,10 @@
                                 <td><a class="order-code-link" asp-action="Details" asp-route-id="@order.Id">@order.Code</a></td>
                                 <td><strong>@order.CustomerName</strong>@if (!string.IsNullOrWhiteSpace(order.CustomerPhone)) { <small class="d-block text-muted">@order.CustomerPhone</small> }</td>
                                 <td>@order.Items.Sum(item => item.Quantity)<small class="d-block text-muted">@order.Items.Count dòng sản phẩm</small></td>
-                                <td class="fw-semibold">@order.Total.ToString("N0") ₫</td>
+                                <td class="fw-semibold">@MoneyFormatter.Render(order.Total, order.CurrencyCode)</td>
                                 <td><span class="payment-state @(order.PaymentStatus == PaymentStatus.Paid ? "paid" : order.PaymentStatus == PaymentStatus.Refunded ? "refunded" : null)">@(order.PaymentStatus == PaymentStatus.Paid ? "Đã thanh toán" : order.PaymentStatus == PaymentStatus.Refunded ? "Đã hoàn tiền" : "Chưa thanh toán")</span></td>
                                 <td><span class="badge-soft @StatusClass(order.Status)">@StatusText(order.Status)</span></td>
-                                <td>@order.CreatedAt.ToString("dd/MM/yyyy")<small class="d-block text-muted">@order.CreatedAt.ToString("HH:mm")</small></td>
+                                <td>@DisplayFormatter.Date(order.CreatedAt, false)<small class="d-block text-muted">@order.CreatedAt.ToString("HH:mm")</small></td>
                                 <td>
                                     <div class="table-actions">
                                         <a asp-action="Invoice" asp-route-id="@order.Id">Hóa đơn</a>
