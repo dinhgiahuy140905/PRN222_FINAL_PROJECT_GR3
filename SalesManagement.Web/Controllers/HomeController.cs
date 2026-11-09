@@ -47,6 +47,7 @@ namespace SalesManagement.Web.Controllers
 
             var model = new DashboardViewModel
             {
+                IsOwner = membership.Role == StoreRole.Owner,
                 CurrencyCode = membership.Store.CurrencyCode,
                 StoreName = membership.Store.Name,
                 ProductCount = await _context.Products
@@ -108,6 +109,14 @@ namespace SalesManagement.Web.Controllers
             };
 
             return View(model);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> Help()
+        {
+            var member = await _currentStore.GetMembershipAsync();
+            ViewData["IsOwner"] = member?.Role == StoreRole.Owner;
+            return View();
         }
 
         [AllowAnonymous]
