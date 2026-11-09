@@ -34,6 +34,12 @@
                 <option value="@OrderStatus.Completed" selected="@(Model.Status == OrderStatus.Completed)">Hoàn thành</option>
                 <option value="@OrderStatus.Cancelled" selected="@(Model.Status == OrderStatus.Cancelled)">Đã hủy</option>
             </select>
+            <select class="form-select" name="paymentStatus" aria-label="Trạng thái thanh toán">
+                <option value="">Tất cả thanh toán</option>
+                <option value="Unpaid" selected="@(Model.PaymentStatus == PaymentStatus.Unpaid)">Chưa thanh toán</option>
+                <option value="Paid" selected="@(Model.PaymentStatus == PaymentStatus.Paid)">Đã thanh toán</option>
+                <option value="Refunded" selected="@(Model.PaymentStatus == PaymentStatus.Refunded)">Đã hoàn tiền</option>
+            </select>
             <button class="btn btn-light-primary" type="submit">Lọc</button>
         </form>
 
