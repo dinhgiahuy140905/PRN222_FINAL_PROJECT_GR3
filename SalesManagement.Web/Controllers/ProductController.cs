@@ -301,7 +301,11 @@ namespace SalesManagement.Web.Controllers
                 ModelState.AddModelError(nameof(model.QuantityChange), "Số lượng thay đổi phải khác 0.");
             }
 
-            var quantityAfter = product.Inventory.Quantity + model.QuantityChange;
+            var quantityAfter = (long)product.Inventory.Quantity + model.QuantityChange;
+            if (quantityAfter > int.MaxValue)
+            {
+                ModelState.AddModelError(nameof(model.QuantityChange), "Số lượng sau điều chỉnh vượt giới hạn tồn kho.");
+            }
             if (quantityAfter < 0)
             {
                 ModelState.AddModelError(nameof(model.QuantityChange), "Số lượng xuất vượt quá tồn kho hiện tại.");
@@ -313,14 +317,14 @@ namespace SalesManagement.Web.Controllers
             }
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
-            product.Inventory.Quantity = quantityAfter;
+            product.Inventory.Quantity = checked((int)quantityAfter);
             product.InventoryTransactions.Add(new InventoryTransaction
             {
                 StoreId = storeId.Value,
                 UserId = _currentStore.UserId,
                 Type = InventoryTransactionType.Adjustment,
                 QuantityChange = model.QuantityChange,
-                QuantityAfter = quantityAfter,
+                QuantityAfter = checked((int)quantityAfter),
                 Note = NormalizeOptional(model.Note)
             });
 
