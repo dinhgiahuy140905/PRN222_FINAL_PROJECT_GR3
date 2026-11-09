@@ -75,25 +75,25 @@ else
         <div class="col-sm-6 col-xl-3">
             <article class="stat-card">
                 <div class="stat-card-top"><span class="stat-icon stat-icon-purple"><svg viewBox="0 0 24 24"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3" /></svg></span><span class="data-status real">Dữ liệu thực</span></div>
-                <div class="stat-value">@Model.Revenue.ToString("N0") ₫</div><div class="stat-label">Doanh thu tháng này</div><div class="stat-note">Từ các đơn đã hoàn thành</div>
+                <div class="stat-value">@MoneyFormatter.Render(Model.Revenue, Model.CurrencyCode)</div><div class="stat-label">Doanh thu tháng này (@Model.CurrencyCode)</div><div class="stat-note">Từ các đơn đã hoàn thành</div>
             </article>
         </div>
         <div class="col-sm-6 col-xl-3">
             <article class="stat-card">
                 <div class="stat-card-top"><span class="stat-icon stat-icon-green"><svg viewBox="0 0 24 24"><path d="M6 7h12l1 13H5L6 7Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></svg></span><span class="data-status">Thực tế</span></div>
-                <div class="stat-value">@Model.OrderCount</div><div class="stat-label">Đơn hàng tháng này</div><div class="stat-note">Không tính đơn đã hủy</div>
+                <div class="stat-value">@DisplayFormatter.Number(Model.OrderCount)</div><div class="stat-label">Đơn hàng tháng này</div><div class="stat-note">Không tính đơn đã hủy</div>
             </article>
         </div>
         <div class="col-sm-6 col-xl-3">
             <article class="stat-card">
                 <div class="stat-card-top"><span class="stat-icon stat-icon-orange"><svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4-8 4-8-4Z" /><path d="m4 7v10l8 4 8-4V7M12 11v10" /></svg></span><span class="data-status real">Dữ liệu thực</span></div>
-                <div class="stat-value">@Model.ProductCount</div><div class="stat-label">Sản phẩm đang bán</div><div class="stat-note">@Model.LowStockCount sản phẩm cần chú ý</div>
+                <div class="stat-value">@DisplayFormatter.Number(Model.ProductCount)</div><div class="stat-label">Sản phẩm đang bán</div><div class="stat-note">@Model.LowStockCount sản phẩm cần chú ý</div>
             </article>
         </div>
         <div class="col-sm-6 col-xl-3">
             <article class="stat-card">
                 <div class="stat-card-top"><span class="stat-icon stat-icon-blue"><svg viewBox="0 0 24 24"><path d="M4 8h16v12H4zM8 4h8v4M9 13h6" /></svg></span><span class="data-status real">Dữ liệu thực</span></div>
-                <div class="stat-value">@Model.TotalStock</div><div class="stat-label">Tổng số lượng tồn kho</div><div class="stat-note">Trên @Model.ProductCount sản phẩm</div>
+                <div class="stat-value">@DisplayFormatter.Number(Model.TotalStock)</div><div class="stat-label">Tổng số lượng tồn kho</div><div class="stat-note">Trên @Model.ProductCount sản phẩm</div>
             </article>
         </div>
     </section>
@@ -115,7 +115,7 @@ else
                                 <span class="activity-icon @(activity.QuantityChange >= 0 ? "increase" : "decrease")">@(activity.QuantityChange >= 0 ? "＋" : "−")</span>
                                 <span><strong>@activity.ProductName</strong><small>@activity.Sku · @(activity.Note ?? "Điều chỉnh tồn kho")</small></span>
                                 <span class="activity-quantity @(activity.QuantityChange >= 0 ? "increase" : "decrease")">@(activity.QuantityChange > 0 ? "+" : "")@activity.QuantityChange<small>Còn @activity.QuantityAfter</small></span>
-                                <time>@activity.CreatedAt.ToString("dd/MM/yyyy HH:mm")</time>
+                                <time>@DisplayFormatter.Date(activity.CreatedAt, true)</time>
                             </div>
                         }
                     </div>
@@ -126,9 +126,9 @@ else
             <article class="content-card h-100">
                 <span class="eyebrow">Tình trạng kho</span><h2>Tổng quan sản phẩm</h2>
                 <div class="stock-health">
-                    <div><span>Sản phẩm hoạt động</span><strong>@Model.ProductCount</strong></div>
-                    <div><span>Tổng tồn kho</span><strong>@Model.TotalStock</strong></div>
-                    <div class="@(Model.LowStockCount > 0 ? "warning" : null)"><span>Sắp hết hàng</span><strong>@Model.LowStockCount</strong></div>
+                    <div><span>Sản phẩm hoạt động</span><strong>@DisplayFormatter.Number(Model.ProductCount)</strong></div>
+                    <div><span>Tổng tồn kho</span><strong>@DisplayFormatter.Number(Model.TotalStock)</strong></div>
+                    <div class="@(Model.LowStockCount > 0 ? "warning" : null)"><span>Sắp hết hàng</span><strong>@DisplayFormatter.Number(Model.LowStockCount)</strong></div>
                 </div>
                 <div class="quick-actions dashboard-actions">
                     <a asp-controller="Product" asp-action="Create"><span class="quick-icon stat-icon-purple">＋</span><span><strong>Thêm sản phẩm</strong><small>Tạo sản phẩm mới</small></span><b>→</b></a>
@@ -169,8 +169,8 @@ else
                             <td>@order.CustomerName</td>
                             <td><span class="badge-soft @statusClass">@statusText</span></td>
                             <td><span class="payment-state @paymentClass">@paymentText</span></td>
-                            <td><strong>@order.Total.ToString("N0") ₫</strong></td>
-                            <td>@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td><strong>@MoneyFormatter.Render(order.Total, order.CurrencyCode)</strong></td>
+                            <td>@DisplayFormatter.Date(order.CreatedAt, true)</td>
                             <td><a class="table-detail-link" asp-controller="Order" asp-action="Details" asp-route-id="@order.Id">Chi tiết →</a></td>
                         </tr>
                     }
