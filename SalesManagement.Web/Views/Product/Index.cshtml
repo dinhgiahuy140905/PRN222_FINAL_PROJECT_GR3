@@ -1,3 +1,5 @@
+@inject ICurrentStoreContext CurrentStore
+@{ var currencyCode = (await CurrentStore.GetMembershipAsync())!.Store.CurrencyCode; }
 @model ProductIndexViewModel
 @{
     ViewData["Title"] = "Sản phẩm";
@@ -120,7 +122,7 @@
                                     </div>
                                 </td>
                                 <td><span class="product-category">@(product.Category?.Name ?? "Chưa phân loại")</span></td>
-                                <td class="product-price">@product.SalePrice.ToString("N0") ₫</td>
+                                <td class="product-price">@MoneyFormatter.Render(product.SalePrice, currencyCode)</td>
                                 <td>
                                     <span class="product-stock @(isOutOfStock ? "danger" : isLowStock ? "warning" : null)">@quantity</span>
                                     <small class="product-stock-unit">@product.Unit</small>
