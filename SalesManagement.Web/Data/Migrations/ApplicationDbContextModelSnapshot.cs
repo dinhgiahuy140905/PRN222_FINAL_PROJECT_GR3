@@ -193,6 +193,10 @@ namespace SalesManagement.Web.Data.Migrations
                     b.Property<int?>("CreatedByUserId")
                         .HasColumnType("int");
 
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("CustomerId")
                         .HasColumnType("int");
 

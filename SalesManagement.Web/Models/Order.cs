@@ -19,7 +19,7 @@ namespace SalesManagement.Web.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
-
+        public string CurrencyCode { get; set; } = "VND";
         public Store Store { get; set; } = null!;
         public Customer? Customer { get; set; }
         public User? CreatedByUser { get; set; }
