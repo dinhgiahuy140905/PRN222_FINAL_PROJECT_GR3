@@ -148,7 +148,15 @@ namespace SalesManagement.Web.Controllers
                 await LoadProductsAsync(model, storeId);
                 return View(model);
             }
-
+            
+            
+            var store = await _context.Stores.FindAsync(storeId);
+            if (store is null)
+            {
+                return NotFound();
+            }
+            
+            
             var order = new Order
             {
                 StoreId = storeId,
@@ -163,7 +171,9 @@ namespace SalesManagement.Web.Controllers
                 Subtotal = subtotal,
                 Discount = model.Discount,
                 Total = subtotal - model.Discount,
-                Note = NormalizeOptional(model.Note)
+                Note = NormalizeOptional(model.Note),
+
+                CurrencyCode = store.CurrencyCode
             };
 
             await using var databaseTransaction = await _context.Database.BeginTransactionAsync();

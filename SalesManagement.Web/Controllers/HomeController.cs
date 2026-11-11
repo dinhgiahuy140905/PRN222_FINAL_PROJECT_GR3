@@ -54,10 +54,11 @@ namespace SalesManagement.Web.Controllers
                     .Where(item => item.StoreId == storeId)
                     .SumAsync(item => (int?)item.Quantity) ?? 0,
                 LowStockCount = await _context.Products
-                    .CountAsync(product =>
-                        product.StoreId == storeId &&
-                        product.IsActive &&
-                        product.Inventory.Quantity <= product.Inventory.ReorderLevel),
+    .CountAsync(product =>
+        product.StoreId == storeId &&
+        product.IsActive &&
+        product.Inventory.Quantity > 0 &&
+        product.Inventory.Quantity <= product.Inventory.ReorderLevel),
                 OrderCount = await monthOrders.CountAsync(),
                 Revenue = await monthOrders
                     .Where(order => order.Status == OrderStatus.Completed)

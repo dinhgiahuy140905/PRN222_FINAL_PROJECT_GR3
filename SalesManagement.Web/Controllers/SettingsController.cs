@@ -109,6 +109,27 @@ namespace SalesManagement.Web.Controllers
                 return NotFound();
             }
 
+            // --- BỔ SUNG CHO BUG-02: Chặn đổi tiền tệ nếu đã có sản phẩm hoặc đơn hàng ---
+            string newCurrency = model.CurrencyCode.Trim().ToUpperInvariant();
+            if (store.CurrencyCode != newCurrency)
+            {
+                bool hasProductsOrOrders = await _context.Products.AnyAsync(p => p.StoreId == store.Id) ||
+                                           await _context.Orders.AnyAsync(o => o.StoreId == store.Id);
+                if (hasProductsOrOrders)
+                {
+                    ModelState.AddModelError(
+                        "Store.CurrencyCode",
+                        "Không thể thay đổi đơn vị tiền tệ vì cửa hàng đã có sản phẩm hoặc đơn hàng tồn tại.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                model.LogoPath = store.LogoPath;
+                return View("Index", await BuildPageAsync("store", store: model));
+            }
+            // --------------------------------------------------------------------------
+
             var logoPath = await SaveImageAsync(model.Logo, "stores", "Store.Logo");
             if (!ModelState.IsValid)
             {
@@ -194,7 +215,13 @@ namespace SalesManagement.Web.Controllers
 
             user.PasswordHash = _passwordHasher.HashPassword(user, model.NewPassword);
             user.PasswordChangedAt = DateTime.Now;
+
+            user.SecurityStamp = Guid.NewGuid().ToString();
+
             await _context.SaveChangesAsync();
+
+            await RefreshSessionAsync(user);
+
             TempData["Success"] = "Đã đổi mật khẩu.";
             return RedirectToAction(nameof(Index), new { section = "security" });
         }
