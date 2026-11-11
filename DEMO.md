@@ -66,7 +66,7 @@ Các phiên khác sẽ bị thu hồi. Nếu muốn trình diễn luồng này, 
 Development mặc định lưu thư khôi phục tại `SalesManagement.Web/.local-mail/*.eml`
 khi chưa chọn SMTP. Mở thư mới nhất để lấy liên kết; không có email gửi ra ngoài
 trong chế độ này. Liên kết có hiệu lực 30 phút và dùng một lần. Không commit hoặc
-chia sẻ file thư chứa token. Cấu hình SMTP được mô tả trong `AUDIT_FIXES.md`.
+chia sẻ file thư chứa token.
 
 ## Tài khoản và bản sao dữ liệu demo cục bộ
 
@@ -86,4 +86,3 @@ dotnet test PRN222_SalesManagement.sln
 
 Các test SQL/Chrome dùng database tạm riêng. Bộ test cần Windows, LocalDB, Node
 và Chrome; kết quả nằm dưới `SalesManagement.Tests/TestResults/` và được gitignore.
-Đọc `MERGE_RESOLUTION.md` để xem các quyết định xử lý conflict và bằng chứng kiểm tra.
