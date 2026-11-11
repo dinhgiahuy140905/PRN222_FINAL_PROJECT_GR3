@@ -28,6 +28,8 @@
             = new List<InventoryTransaction>();
 
         public ICollection<Order> CreatedOrders { get; set; } = new List<Order>();
+
+        public string SecurityStamp { get; set; } = Guid.NewGuid().ToString();
     }
 
     public enum AccountType

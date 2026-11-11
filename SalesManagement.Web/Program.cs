@@ -1,7 +1,9 @@
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 using SalesManagement.Web.Data;
 using SalesManagement.Web.Models;
 using SalesManagement.Web.Services;
@@ -22,6 +24,41 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+
+        // --- Bổ sung kiểm tra Security Stamp cho BUG-01 ---
+        options.Events.OnValidatePrincipal = async context =>
+        {
+            var userPrincipal = context.Principal;
+            var stampClaim = userPrincipal?.FindFirst("SecurityStamp")?.Value;
+            var userIdClaim = userPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // Nếu cookie thiếu thông tin claim cần thiết -> Từ chối phiên & Đăng xuất
+            if (string.IsNullOrEmpty(stampClaim) || string.IsNullOrEmpty(userIdClaim))
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                return;
+            }
+
+            var dbContext = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
+
+            if (int.TryParse(userIdClaim, out int userId))
+            {
+                var user = await dbContext.Users.FindAsync(userId);
+
+                // Nếu user không tồn tại hoặc SecurityStamp trong cookie không khớp với DB (do đã đổi pass ở nơi khác)
+                if (user == null || user.SecurityStamp != stampClaim)
+                {
+                    context.RejectPrincipal();
+                    await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                }
+            }
+            else
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+        };
     });
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
