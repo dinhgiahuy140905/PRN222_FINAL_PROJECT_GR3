@@ -102,6 +102,8 @@ try {
         await submit('form[action*="UpdateProfile"] button[type="submit"]');
         await check(`document.body.textContent.includes('Browser ${role} updated')`, role + ' save profile');
         await click('[data-settings-target="preferences"]');
+        await check(`['preferenceDate', 'preferenceNumber', 'preferenceCurrency'].every(id => !document.getElementById(id).disabled)`, role + ' supported display preferences enabled');
+        await check(`document.getElementById('preferenceLanguage').disabled`, role + ' unsupported language preference disabled');
         await evaluate(`document.getElementById('preferenceNumber').value='en-US'; document.getElementById('preferenceDate').value='MM/dd/yyyy'; document.getElementById('preferenceCurrency').value='code';`);
         await submit('#preferencesForm button[type="submit"]');
         await check(`localStorage.getItem('saleshub-numberFormat')==='en-US' && localStorage.getItem('saleshub-currencyDisplay')==='code'`, role + ' save preferences');

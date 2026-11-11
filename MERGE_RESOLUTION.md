@@ -35,4 +35,59 @@
 
 ## Verification results
 
-Pending implementation and verification.
+Completed on 2026-11-11:
+
+- `dotnet build PRN222_SalesManagement.sln --nologo --verbosity minimal`:
+  passed with zero warnings and errors.
+- Full suite with `SALESHUB_TEST_SQLSERVER=1` and `SALESHUB_TEST_BROWSER=1`:
+  **45 passed, 0 failed, 0 skipped**. Results are generated under
+  `SalesManagement.Tests/TestResults/` (ignored by Git).
+- Real Chrome role checks cover Owner/Staff actions, permission boundaries,
+  notifications, enabled display preferences, and the disabled language selector.
+- Standalone Chrome display-preference checks and order-form regression checks
+  for VND, USD/en-US, and EUR/vi-VN all passed, including safe product rendering,
+  add/remove/reindex operations, totals, and discounts.
+- `dotnet ef migrations has-pending-model-changes --project SalesManagement.Web
+  --startup-project SalesManagement.Web --no-build`: no pending model changes.
+- Three isolated SQL Server migration cases passed: empty database via idempotent
+  SQL, main-only history, and incoming history. Existing order currencies/amounts,
+  password hashes, and valid stamps are preserved. The schema converges to one
+  nonnullable `nvarchar(10)` order currency column, the stock constraint, and no
+  runtime `SessionVersion` column. Repeated migrations/scripts preserve data.
+- `SalesManagement.Tests/verify-currency-migration.ps1`: VND/USD/EUR backfill and
+  historical amounts passed. Every database used for validation was disposable;
+  the application's configured database was not migrated.
+- Added regression tests ensure changing a password in Settings invalidates an
+  already issued recovery link and that dashboard low-stock counts match the
+  product filter at zero/threshold/above-threshold and inactive-product boundaries.
+
+## Migration compatibility and rollout
+
+Both existing migration IDs for order currency remain in history. Their additions
+now check whether the column already exists; only missing/blank snapshots are
+backfilled. `AddOrderCurrencySnapshot` owns column removal on rollback;
+`AddCurrencyCodeToOrder.Down` no longer removes a column that an earlier migration
+still requires. Historical designer files remain unchanged.
+
+`20261111054258_ReconcileBranchMigrations` aligns the final schema, initializes
+blank security stamps, and drops the obsolete session-version counter. It preserves
+nonempty stamps and every nonempty currency snapshot. New password recovery tokens
+use a separate SecurityStamp-based Data Protection purpose. Sessions and recovery
+links from the SessionVersion branch must be reissued after upgrading; valid main
+sessions with an existing nonempty stamp are preserved.
+
+Apply the complete migration chain before starting this version of the app. A
+currency snapshot missing from older data can only be filled from the store's
+current currency; amounts are never converted. See `CURRENCY_VALIDATION_NOTES.md`
+for that existing historical-data limitation.
+
+## Commits and handoff
+
+- `a9a899b`: record the integration plan and resolution decisions.
+- `624bb86`: merge the incoming branch and reconcile overlapping main changes.
+- The regression-coverage commit adds migration convergence tests, merge-specific
+  behavior checks, the browser assertions, and this verification record.
+
+After verification, fast-forward local `main` to the integration branch, keeping
+the integration branch as a named reference. No remote branch is pushed, merged,
+or deleted by this integration task.
