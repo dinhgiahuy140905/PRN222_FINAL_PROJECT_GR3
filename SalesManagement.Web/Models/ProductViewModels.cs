@@ -47,10 +47,12 @@ namespace SalesManagement.Web.Models
 
         [Range(0, 999999999999)]
         [Display(Name = "Giá nhập")]
+        [MoneyPrecision]
         public decimal CostPrice { get; set; }
 
         [Range(0, 999999999999)]
         [Display(Name = "Giá bán")]
+        [MoneyPrecision]
         public decimal SalePrice { get; set; }
 
         [Display(Name = "Danh mục")]

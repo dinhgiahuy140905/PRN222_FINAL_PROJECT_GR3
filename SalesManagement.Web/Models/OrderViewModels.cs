@@ -4,6 +4,7 @@ namespace SalesManagement.Web.Models
 {
     public class CreateOrderViewModel
     {
+        public string CurrencyCode { get; set; } = "VND";
         public int? CustomerId { get; set; }
         public bool SaveCustomer { get; set; }
         public IReadOnlyList<Customer> Customers { get; set; } = Array.Empty<Customer>();
@@ -19,6 +20,7 @@ namespace SalesManagement.Web.Models
 
         [Range(0, 999999999999)]
         [Display(Name = "Giảm giá")]
+        [MoneyPrecision]
         public decimal Discount { get; set; }
 
         [Display(Name = "Phương thức thanh toán")]
@@ -57,6 +59,7 @@ namespace SalesManagement.Web.Models
 
     public class OrderIndexViewModel
     {
+        public PaymentStatus? PaymentStatus { get; set; }
         public string? Search { get; set; }
         public OrderStatus? Status { get; set; }
         public IReadOnlyList<Order> Orders { get; set; } = Array.Empty<Order>();

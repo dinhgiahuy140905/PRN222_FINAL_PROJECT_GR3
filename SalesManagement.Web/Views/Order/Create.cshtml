@@ -11,6 +11,7 @@
         <a class="btn btn-light-primary" asp-action="Index">← Danh sách đơn</a>
     </div>
 
+    <div asp-validation-summary="All" class="alert alert-danger"></div>
     @if (Model.Products.Count == 0)
     {
         <div class="content-card order-no-products">
@@ -20,10 +21,9 @@
             <a class="btn btn-primary" asp-controller="Product" asp-action="Create">Thêm sản phẩm</a>
         </div>
     }
-    else
+    @if (Model.Products.Count > 0 || !ViewData.ModelState.IsValid)
     {
         <form asp-action="Create" method="post" id="orderForm">
-            <div asp-validation-summary="All" class="alert alert-danger"></div>
             <div class="row g-4">
                 <div class="col-xl-8">
                     <div class="content-card order-builder">
@@ -35,14 +35,18 @@
                                 <div class="order-item-row">
                                     <select class="form-select product-select" name="Items[@index].ProductId" required>
                                         <option value="">Chọn sản phẩm</option>
+                                        @if (Model.Items[index].ProductId > 0 && !Model.Products.Any(product => product.Id == Model.Items[index].ProductId))
+                                        {
+                                            <option value="@Model.Items[index].ProductId" selected>Sản phẩm #@Model.Items[index].ProductId không còn khả dụng</option>
+                                        }
                                         @foreach (var product in Model.Products)
                                         {
                                             <option value="@product.Id" selected="@(product.Id == Model.Items[index].ProductId)">@product.Name · @product.Sku (còn @product.Stock)</option>
                                         }
                                     </select>
-                                    <input class="form-control quantity-input" name="Items[@index].Quantity" type="number" min="1" value="@Model.Items[index].Quantity" required />
-                                    <span class="item-price">0 ₫</span>
-                                    <strong class="item-total">0 ₫</strong>
+                                    @Html.TextBox($"Items[{index}].Quantity", Model.Items[index].Quantity, new { @class = "form-control quantity-input", type = "number", min = "1", required = "required" })
+                                    <span class="item-price">@MoneyFormatter.Render(0, Model.CurrencyCode)</span>
+                                    <strong class="item-total">@MoneyFormatter.Render(0, Model.CurrencyCode)</strong>
                                     <button class="remove-order-item" type="button" aria-label="Xóa dòng">×</button>
                                 </div>
                             }
@@ -65,9 +69,9 @@
                     <div class="content-card order-summary-card">
                         <span class="eyebrow">Thanh toán</span><h2>Tổng kết đơn hàng</h2>
                         <div class="order-summary-lines">
-                            <div><span>Tiền hàng</span><strong id="orderSubtotal">0 ₫</strong></div>
-                            <div class="discount-line"><label asp-for="Discount"></label><div class="input-group"><input asp-for="Discount" class="form-control" min="0" /><span class="input-group-text">₫</span></div><span asp-validation-for="Discount" class="text-danger small"></span></div>
-                            <div class="order-grand-total"><span>Khách cần trả</span><strong id="orderTotal">0 ₫</strong></div>
+                            <div><span>Tiền hàng</span><strong id="orderSubtotal">@MoneyFormatter.Render(0, Model.CurrencyCode)</strong></div>
+                            <div class="discount-line"><label asp-for="Discount"></label><div class="input-group"><input asp-for="Discount" class="form-control" min="0" /><span class="input-group-text">@MoneyFormatter.Label(Model.CurrencyCode)</span></div><span asp-validation-for="Discount" class="text-danger small"></span></div>
+                            <div class="order-grand-total"><span>Khách cần trả</span><strong id="orderTotal">@MoneyFormatter.Render(0, Model.CurrencyCode)</strong></div>
                         </div>
                         <div class="mb-3"><label asp-for="PaymentMethod" class="form-label fw-semibold"></label><select asp-for="PaymentMethod" class="form-select"><option value="@PaymentMethod.Cash">Tiền mặt</option><option value="@PaymentMethod.BankTransfer">Chuyển khoản</option><option value="@PaymentMethod.Card">Thẻ</option></select></div>
                         <p class="text-muted small">Đơn mới chưa thanh toán. Sau khi hoàn tất, nhân viên ghi nhận đã nhận đủ tiền riêng.</p>
@@ -88,7 +92,12 @@
         const container = document.getElementById("orderItems");
         const addButton = document.getElementById("addOrderItem");
         const discountInput = document.getElementById("Discount");
-        const currency = value => new Intl.NumberFormat("vi-VN").format(Math.max(0, value || 0)) + " ₫";
+        if (!container) return;
+        const currencyCode = @Html.Raw(JsonSerializer.Serialize(Model.CurrencyCode));
+        const currency = value => window.SalesHubDisplay?.money(Math.max(0, value || 0), currencyCode) ?? new Intl.NumberFormat("vi-VN", {
+            minimumFractionDigits: currencyCode === "VND" ? 0 : 2,
+            maximumFractionDigits: currencyCode === "VND" ? 0 : 2
+        }).format(Math.max(0, value || 0)) + " " + (currencyCode === "VND" ? "₫" : currencyCode);
         const appendProductOptions = select => {
             products.forEach(product => {
                 const option = document.createElement("option");
@@ -135,15 +144,18 @@
         addButton?.addEventListener("click", () => {
             const row = document.createElement("div");
             row.className = "order-item-row";
-            row.innerHTML = `<select class="form-select product-select" required><option value="">Chọn sản phẩm</option></select><input class="form-control quantity-input" type="number" min="1" value="1" required /><span class="item-price">0 ₫</span><strong class="item-total">0 ₫</strong><button class="remove-order-item" type="button" aria-label="Xóa dòng">×</button>`;
+            row.innerHTML = `<select class="form-select product-select" required><option value="">Chọn sản phẩm</option></select><input class="form-control quantity-input" type="number" min="1" value="1" required /><span class="item-price"></span><strong class="item-total"></strong><button class="remove-order-item" type="button" aria-label="Xóa dòng">×</button>`;
             appendProductOptions(row.querySelector(".product-select"));
             container.appendChild(row);
             bindRow(row);
             reindex();
+            calculate();
         });
 
         container?.querySelectorAll(".order-item-row").forEach(bindRow);
         discountInput?.addEventListener("input", calculate);
+        window.addEventListener("saleshub:displaychange", calculate);
+        window.addEventListener("storage", calculate);
         calculate();
     })();
 </script>

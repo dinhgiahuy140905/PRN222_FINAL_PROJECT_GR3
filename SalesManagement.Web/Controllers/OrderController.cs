@@ -22,7 +22,7 @@ namespace SalesManagement.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? search, OrderStatus? status)
+        public async Task<IActionResult> Index(string? search, OrderStatus? status, PaymentStatus? paymentStatus)
         {
             var storeId = await GetStoreIdAsync();
             if (storeId is null)
@@ -51,9 +51,10 @@ namespace SalesManagement.Web.Controllers
 
             return View(new OrderIndexViewModel
             {
+                PaymentStatus = paymentStatus,
                 Search = search,
                 Status = status,
-                Orders = await query
+                Orders = await query.Where(order => paymentStatus == null || order.PaymentStatus == paymentStatus)
                     .OrderByDescending(order => order.CreatedAt)
                     .ToListAsync()
             });
@@ -138,6 +139,12 @@ namespace SalesManagement.Web.Controllers
                 .Where(input => products.ContainsKey(input.ProductId))
                 .Sum(input => products[input.ProductId].SalePrice * input.Quantity);
 
+            if (subtotal > 9999999999999999.99m)
+            {
+                ModelState.AddModelError(nameof(model.Items),
+                    "Tổng tiền vượt giới hạn cho phép. Vui lòng giảm số lượng hoặc tách thành nhiều đơn.");
+            }
+
             if (model.Discount > subtotal)
             {
                 ModelState.AddModelError(nameof(model.Discount), "Giảm giá không thể lớn hơn tiền hàng.");
@@ -148,18 +155,11 @@ namespace SalesManagement.Web.Controllers
                 await LoadProductsAsync(model, storeId);
                 return View(model);
             }
-            
-            
-            var store = await _context.Stores.FindAsync(storeId);
-            if (store is null)
-            {
-                return NotFound();
-            }
-            
-            
+
             var order = new Order
             {
                 StoreId = storeId,
+                CurrencyCode = membership.Store.CurrencyCode,
                 CreatedByUserId = _currentStore.UserId,
                 Code = GenerateOrderCode(),
                 CustomerName = selectedCustomer?.Name ?? (string.IsNullOrWhiteSpace(model.CustomerName) ? "Khách lẻ" : model.CustomerName.Trim()),
@@ -171,9 +171,7 @@ namespace SalesManagement.Web.Controllers
                 Subtotal = subtotal,
                 Discount = model.Discount,
                 Total = subtotal - model.Discount,
-                Note = NormalizeOptional(model.Note),
-
-                CurrencyCode = store.CurrencyCode
+                Note = NormalizeOptional(model.Note)
             };
 
             await using var databaseTransaction = await _context.Database.BeginTransactionAsync();
@@ -338,6 +336,13 @@ namespace SalesManagement.Web.Controllers
                 return RedirectToAction(nameof(Details), new { id });
             }
 
+            if (order.Items.GroupBy(item => item.ProductId).Any(group =>
+                (long)group.First().Product.Inventory.Quantity + group.Sum(item => (long)item.Quantity) > int.MaxValue))
+            {
+                TempData["Error"] = "Không thể hoàn kho vì số lượng sẽ vượt giới hạn tồn kho. Vui lòng điều chỉnh kho trước.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
             await using var databaseTransaction = await _context.Database.BeginTransactionAsync();
             var changed = await _context.Orders
                 .Where(x => x.Id == id && x.StoreId == storeId && x.Status != OrderStatus.Cancelled && x.PaymentStatus != PaymentStatus.Paid)
@@ -442,6 +447,8 @@ namespace SalesManagement.Web.Controllers
 
         private async Task LoadProductsAsync(CreateOrderViewModel model, int storeId)
         {
+            model.CurrencyCode = await _context.Stores.Where(store => store.Id == storeId)
+                .Select(store => store.CurrencyCode).SingleAsync();
             model.Customers = await _context.Customers.AsNoTracking()
                 .Where(customer => customer.StoreId == storeId).OrderBy(customer => customer.Name).ToListAsync();
             model.Products = await _context.Products

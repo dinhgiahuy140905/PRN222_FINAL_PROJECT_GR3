@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
 using SalesManagement.Web.Data;
 using SalesManagement.Web.Models;
 using SalesManagement.Web.Services;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,49 +23,31 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
+        options.EventsType = typeof(SessionValidationEvents);
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-
-        // --- Bổ sung kiểm tra Security Stamp cho BUG-01 ---
-        options.Events.OnValidatePrincipal = async context =>
-        {
-            var userPrincipal = context.Principal;
-            var stampClaim = userPrincipal?.FindFirst("SecurityStamp")?.Value;
-            var userIdClaim = userPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            // Nếu cookie thiếu thông tin claim cần thiết -> Từ chối phiên & Đăng xuất
-            if (string.IsNullOrEmpty(stampClaim) || string.IsNullOrEmpty(userIdClaim))
-            {
-                context.RejectPrincipal();
-                await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                return;
-            }
-
-            var dbContext = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
-
-            if (int.TryParse(userIdClaim, out int userId))
-            {
-                var user = await dbContext.Users.FindAsync(userId);
-
-                // Nếu user không tồn tại hoặc SecurityStamp trong cookie không khớp với DB (do đã đổi pass ở nơi khác)
-                if (user == null || user.SecurityStamp != stampClaim)
-                {
-                    context.RejectPrincipal();
-                    await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                }
-            }
-            else
-            {
-                context.RejectPrincipal();
-                await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            }
-        };
     });
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserSessionService, UserSessionService>();
+builder.Services.AddScoped<SessionValidationEvents>();
+builder.Services.AddScoped<PasswordResetService>();
+builder.Services.AddScoped<IResetEmailSender, ResetEmailSender>();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.Headers.RetryAfter = "60";
+        context.HttpContext.Response.ContentType = "text/plain; charset=utf-8";
+        await context.HttpContext.Response.WriteAsync("Bạn thao tác quá nhanh. Vui lòng thử lại sau một phút.", token);
+    };
+    options.AddPolicy("password-reset", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+});
 builder.Services.AddScoped<ICurrentStoreContext, CurrentStoreContext>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -80,9 +64,18 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+// HTML number inputs submit a dot as the decimal separator regardless of display preferences.
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("en-US", "vi-VN"),
+    SupportedCultures = new[] { CultureInfo.GetCultureInfo("en-US") },
+    SupportedUICultures = new[] { CultureInfo.GetCultureInfo("vi-VN") },
+    RequestCultureProviders = new List<IRequestCultureProvider>()
+});
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

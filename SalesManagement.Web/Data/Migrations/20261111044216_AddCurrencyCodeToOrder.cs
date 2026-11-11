@@ -10,20 +10,17 @@ namespace SalesManagement.Web.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "CurrencyCode",
-                table: "Orders",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
+            // Both branch histories retain their IDs, but the column is added only once.
+            migrationBuilder.Sql("""
+                IF COL_LENGTH(N'Orders', N'CurrencyCode') IS NULL
+                    ALTER TABLE [Orders] ADD [CurrencyCode] nvarchar(max) NOT NULL DEFAULT N'';
+                """);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "CurrencyCode",
-                table: "Orders");
+            // AddOrderCurrencySnapshot now owns the column earlier in the merged history.
         }
     }
 }

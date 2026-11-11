@@ -10,7 +10,7 @@ using SalesManagement.Web.Services;
 
 namespace SalesManagement.Web.Controllers
 {
-    public class AccountController : Controller
+    public partial class AccountController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly IPasswordHasher<User> _passwordHasher;

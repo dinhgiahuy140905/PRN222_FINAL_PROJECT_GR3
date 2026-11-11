@@ -1,0 +1,21 @@
+@{ ViewData["Title"] = "Hướng dẫn sử dụng"; }
+<section class="content-card">
+    <h1>Hướng dẫn sử dụng SalesHub</h1>
+    <h2>Bán hàng và thanh toán</h2>
+    <p>Tạo đơn tại mục Đơn hàng. Sau khi hoàn thành đơn, bấm Ghi nhận thanh toán để xác nhận đã nhận tiền. Đơn đã thanh toán cần hoàn tiền trước khi hủy; hủy đơn sẽ hoàn lại tồn kho.</p>
+    <a class="btn btn-light-primary mb-3" asp-controller="Order" asp-action="Create">Tạo đơn hàng</a>
+    <h2>Thông báo</h2>
+    <p>Bấm chuông trên thanh công cụ để xem sản phẩm sắp hết, hết hàng và đơn cần xử lý trong cửa hàng hiện tại. Bấm từng thông báo để mở danh sách tương ứng.</p>
+    <h2>Tài khoản và cửa hàng</h2>
+    <p>Dùng nút cửa hàng trên thanh công cụ để chuyển cửa hàng bạn được tham gia. Bấm tên hoặc ảnh đại diện để cập nhật hồ sơ và mật khẩu.</p>
+    @if (ViewData["IsOwner"] is true)
+    {
+        <p>Chủ cửa hàng quản lý thành viên ở mục Nhân viên và cấu hình cửa hàng tại Cài đặt. Để thêm nhân viên, người đó cần đăng ký tài khoản trước.</p>
+        <a class="btn btn-light-primary mb-3" asp-controller="Staff" asp-action="Index">Quản lý nhân viên</a>
+    }
+    else
+    {
+        <p>Nhân viên có thể xử lý bán hàng, sản phẩm, tồn kho, khách hàng và báo cáo. Việc quản lý nhân viên và cấu hình cửa hàng do chủ cửa hàng thực hiện.</p>
+    }
+    <a class="btn btn-light-primary" asp-controller="Settings" asp-action="Index">Cài đặt cá nhân</a>
+</section>

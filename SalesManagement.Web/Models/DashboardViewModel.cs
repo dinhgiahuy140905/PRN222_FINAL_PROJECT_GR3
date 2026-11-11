@@ -2,6 +2,8 @@ namespace SalesManagement.Web.Models
 {
     public class DashboardViewModel
     {
+        public bool IsOwner { get; set; }
+        public string CurrencyCode { get; set; } = "VND";
         public string StoreName { get; set; } = string.Empty;
         public int ProductCount { get; set; }
         public int TotalStock { get; set; }
@@ -19,6 +21,7 @@ namespace SalesManagement.Web.Models
 
     public class DashboardOrderViewModel
     {
+        public string CurrencyCode { get; set; } = "VND";
         public int Id { get; set; }
         public string Code { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;

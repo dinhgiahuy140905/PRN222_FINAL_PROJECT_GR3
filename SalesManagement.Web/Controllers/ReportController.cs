@@ -10,7 +10,7 @@ namespace SalesManagement.Web.Controllers;
 [Authorize]
 public class ReportController(ApplicationDbContext db, ICurrentStoreContext currentStore) : Controller
 {
-    public async Task<IActionResult> Index(DateTime? from, DateTime? to)
+    public async Task<IActionResult> Index(DateTime? from, DateTime? to, string? currencyCode)
     {
         var member = await currentStore.GetMembershipAsync();
         if (member is null) return RedirectToAction("Select", "Store");
@@ -20,7 +20,18 @@ public class ReportController(ApplicationDbContext db, ICurrentStoreContext curr
         var orders = db.Orders.AsNoTracking().Where(x => x.StoreId == member.StoreId);
         if (from.HasValue) orders = orders.Where(x => x.CreatedAt >= from.Value.Date);
         if (to.HasValue) orders = orders.Where(x => x.CreatedAt < to.Value.Date.AddDays(1));
-        var model = new ReportViewModel { From = from, To = to };
+        var currencies = await db.Orders.AsNoTracking().Where(x => x.StoreId == member.StoreId)
+            .Select(x => x.CurrencyCode).Distinct().ToListAsync();
+        if (!currencies.Contains(member.Store.CurrencyCode)) currencies.Add(member.Store.CurrencyCode);
+        currencyCode ??= member.Store.CurrencyCode;
+        if (!currencies.Contains(currencyCode))
+            ModelState.AddModelError(string.Empty, "Tiền tệ không thuộc dữ liệu cửa hàng.");
+        orders = orders.Where(x => x.CurrencyCode == currencyCode);
+        var model = new ReportViewModel
+        {
+            From = from, To = to, CurrencyCode = currencyCode,
+            AvailableCurrencies = currencies.OrderBy(x => x).ToList()
+        };
         if (!ModelState.IsValid) return View(model);
         var rows = await orders.Select(x => new { x.Id, x.Status, x.PaymentStatus, x.Total }).ToListAsync();
         model.CompletedSales = rows.Where(x => x.Status == OrderStatus.Completed).Sum(x => x.Total);

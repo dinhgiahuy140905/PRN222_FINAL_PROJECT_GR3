@@ -47,6 +47,8 @@ namespace SalesManagement.Web.Controllers
 
             var model = new DashboardViewModel
             {
+                IsOwner = membership.Role == StoreRole.Owner,
+                CurrencyCode = membership.Store.CurrencyCode,
                 StoreName = membership.Store.Name,
                 ProductCount = await _context.Products
                     .CountAsync(product => product.StoreId == storeId && product.IsActive),
@@ -60,9 +62,9 @@ namespace SalesManagement.Web.Controllers
         product.Inventory.Quantity > 0 &&
         product.Inventory.Quantity <= product.Inventory.ReorderLevel),
                 OrderCount = await monthOrders.CountAsync(),
-                Revenue = await monthOrders
-                    .Where(order => order.Status == OrderStatus.Completed)
-                    .SumAsync(order => (decimal?)order.Total) ?? 0,
+                Revenue = (await monthOrders
+                    .Where(order => order.Status == OrderStatus.Completed && order.CurrencyCode == membership.Store.CurrencyCode)
+                    .Select(order => order.Total).ToListAsync()).Sum(),
                 CustomerCount = await _context.Orders
                     .AsNoTracking()
                     .Where(order =>
@@ -86,6 +88,7 @@ namespace SalesManagement.Web.Controllers
                         Status = order.Status,
                         PaymentStatus = order.PaymentStatus,
                         Total = order.Total,
+                        CurrencyCode = order.CurrencyCode,
                         CreatedAt = order.CreatedAt
                     })
                     .ToListAsync(),
@@ -107,6 +110,14 @@ namespace SalesManagement.Web.Controllers
             };
 
             return View(model);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> Help()
+        {
+            var member = await _currentStore.GetMembershipAsync();
+            ViewData["IsOwner"] = member?.Role == StoreRole.Owner;
+            return View();
         }
 
         [AllowAnonymous]

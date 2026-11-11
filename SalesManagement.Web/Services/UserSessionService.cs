@@ -27,7 +27,7 @@ namespace SalesManagement.Web.Services
                 new(ClaimTypes.Name, user.FullName),
                 new(ClaimTypes.Email, user.Email),
                 new(StoreClaimTypes.AccountType, user.AccountType.ToString()),
-                new("SecurityStamp", user.SecurityStamp ?? string.Empty)
+                new(StoreClaimTypes.SecurityStamp, user.SecurityStamp)
             };
 
             if (!string.IsNullOrWhiteSpace(user.AvatarPath))

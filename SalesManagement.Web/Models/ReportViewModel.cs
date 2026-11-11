@@ -2,6 +2,8 @@ namespace SalesManagement.Web.Models;
 
 public class ReportViewModel
 {
+    public string CurrencyCode { get; set; } = "VND";
+    public List<string> AvailableCurrencies { get; set; } = new();
     public DateTime? From { get; set; }
     public DateTime? To { get; set; }
     public decimal CompletedSales { get; set; }
