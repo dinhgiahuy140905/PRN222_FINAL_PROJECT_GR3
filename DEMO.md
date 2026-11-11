@@ -68,6 +68,14 @@ khi chưa chọn SMTP. Mở thư mới nhất để lấy liên kết; không c�
 trong chế độ này. Liên kết có hiệu lực 30 phút và dùng một lần. Không commit hoặc
 chia sẻ file thư chứa token. Cấu hình SMTP được mô tả trong `AUDIT_FIXES.md`.
 
+## Tài khoản và bản sao dữ liệu demo cục bộ
+
+Trên máy đã chuẩn bị demo, xem `.demo/DEMO_ACCOUNTS.md` để lấy tài khoản theo vai
+trò và cách trình diễn các tình huống. Bản sao đầy đủ database sau khi thêm dữ liệu
+mẫu được lưu tại `.demo/database-backups/SalesManagementDb_demo.bak`.
+Thư mục `.demo/` được gitignore; tài khoản, script cục bộ và backup không được
+đưa lên GitHub. Các file này cần được chuyển riêng khi demo trên máy khác.
+
 ## Chạy lại kiểm tra khi có thay đổi code
 
 ```powershell
