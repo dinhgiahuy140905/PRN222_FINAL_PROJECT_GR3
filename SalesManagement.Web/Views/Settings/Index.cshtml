@@ -200,38 +200,38 @@
 
             <section class="settings-section" data-settings-section="preferences">
                 <div class="settings-section-heading">
-                    <div><h2>Tùy chọn sử dụng</h2><p>Điều chỉnh cách dữ liệu được hiển thị trên thiết bị này.</p></div>
+                    <div><h2>Tùy chọn sử dụng</h2><p>Chỉnh sửa cửa hàng mặc định ưu tiên khi đăng nhập.</p></div>
                 </div>
-                <form asp-action="UpdatePreferences" method="post" id="preferencesForm">
+                <form method="post" action="@Url.Action("UpdatePreferences")" id="preferencesForm">
+                    @Html.AntiForgeryToken()
                     <div class="settings-form-grid">
                         <div>
                             <label class="form-label" for="preferenceLanguage">Ngôn ngữ</label>
-                            <select class="form-select" id="preferenceLanguage" data-display-preference="language">
-                                <option value="vi">Tiếng Việt</option>
-                                <option value="en">English</option>
+                            <select class="form-select" id="preferenceLanguage" disabled>
+                                <option value="vi" selected>Tiếng Việt (Chưa hỗ trợ thay đổi)</option>
                             </select>
+                            <small class="text-muted">Tính năng chưa được hỗ trợ.</small>
                         </div>
                         <div>
                             <label class="form-label" for="preferenceDate">Định dạng ngày</label>
-                            <select class="form-select" id="preferenceDate" data-display-preference="dateFormat">
-                                <option value="dd/MM/yyyy">DD/MM/YYYY</option>
-                                <option value="MM/dd/yyyy">MM/DD/YYYY</option>
-                                <option value="yyyy-MM-dd">YYYY-MM-DD</option>
+                            <select class="form-select" id="preferenceDate" disabled>
+                                <option value="dd/MM/yyyy" selected>DD/MM/YYYY (Chưa hỗ trợ thay đổi)</option>
                             </select>
+                            <small class="text-muted">Tính năng chưa được hỗ trợ.</small>
                         </div>
                         <div>
                             <label class="form-label" for="preferenceNumber">Cách hiển thị số</label>
-                            <select class="form-select" id="preferenceNumber" data-display-preference="numberFormat">
-                                <option value="vi-VN">1.234,56</option>
-                                <option value="en-US">1,234.56</option>
+                            <select class="form-select" id="preferenceNumber" disabled>
+                                <option value="vi-VN" selected>1.234,56 (Chưa hỗ trợ thay đổi)</option>
                             </select>
+                            <small class="text-muted">Tính năng chưa được hỗ trợ.</small>
                         </div>
                         <div>
                             <label class="form-label" for="preferenceCurrency">Cách hiển thị tiền tệ</label>
-                            <select class="form-select" id="preferenceCurrency" data-display-preference="currencyDisplay">
-                                <option value="symbol">540.000 ₫</option>
-                                <option value="code">540.000 VND</option>
+                            <select class="form-select" id="preferenceCurrency" disabled>
+                                <option value="symbol" selected>540.000 ₫ (Chưa hỗ trợ thay đổi)</option>
                             </select>
+                            <small class="text-muted">Tính năng chưa được hỗ trợ.</small>
                         </div>
                         <div class="settings-field-wide">
                             <label class="form-label" for="defaultStoreId">Cửa hàng mặc định</label>
@@ -298,15 +298,6 @@
             page.querySelectorAll("[data-settings-target]").forEach(button =>
                 button.addEventListener("click", () => activate(button.dataset.settingsTarget)));
             activate(page.dataset.activeSection || "profile");
-
-            document.querySelectorAll("[data-display-preference]").forEach(select => {
-                const key = "saleshub-" + select.dataset.displayPreference;
-                select.value = localStorage.getItem(key) || select.value;
-            });
-            document.getElementById("preferencesForm")?.addEventListener("submit", () => {
-                document.querySelectorAll("[data-display-preference]").forEach(select =>
-                    localStorage.setItem("saleshub-" + select.dataset.displayPreference, select.value));
-            });
         })();
     </script>
 }
